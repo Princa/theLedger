@@ -24,8 +24,10 @@ final class LedgerStore {
         DateComponents(calendar: .current, year: year, month: month, day: day).date!
     }
 
-    let asOfDate = LedgerStore.date(2026, 12, 15)
-    let todayDate = LedgerStore.date(2026, 12, 16)
+    /// Always the real current date — the nav header badge and every new entry
+    /// timestamp track today, not a frozen demo date.
+    var asOfDate: Date { Date() }
+    var todayDate: Date { Date() }
 
     let instalmentDueDates: [Date] = [
         LedgerStore.date(2026, 6, 10),
@@ -35,11 +37,12 @@ final class LedgerStore {
     ]
 
     /// Amount held for a scheduled but not-yet-paid team commitment (shown in "Needs you").
-    let scheduledPaymentAmount: Double = 1700
-    let scheduledPaymentCategoryCode = "30"
-    let scheduledPaymentNote = "Scheduled payment, Tournaments — Nov 7"
+    /// Zero by default — set this once a real payment is scheduled.
+    var scheduledPaymentAmount: Double = 0
+    var scheduledPaymentCategoryCode = "30"
+    var scheduledPaymentNote = ""
 
-    let sponsorshipSeasonTarget: Double = 9000
+    var sponsorshipSeasonTarget: Double = 0
 
     // MARK: - Core state
 
@@ -58,84 +61,35 @@ final class LedgerStore {
     var toastMessage: String? = nil
     private var toastWorkItem: DispatchWorkItem?
 
-    // MARK: - Seed data
+    // MARK: - Starting data
+    //
+    // No fictional players, staff, transactions, reimbursements, or sponsors —
+    // a real treasurer adds all of that from the app. The budget line names
+    // stay as a reusable expense-type template (the "ORHC treasurer template"),
+    // with every budget reset to $0 since there's no in-app editor for that
+    // figure yet — set them by logging real expenses/income against each line.
 
     init() {
-        roster = LedgerStore.seedRoster()
-        staff = [
-            StaffMember(name: "Jeff Perry", role: .headCoach),
-            StaffMember(name: "Mel Rolph", role: .assistantCoach),
-            StaffMember(name: "Torin Wang", role: .trainer),
-            StaffMember(name: "Jordan Reeves", role: .teamManager),
-        ]
+        roster = []
+        staff = []
         categories = [
-            BudgetCategory(code: "10", name: "Assessments", budget: 37078),
-            BudgetCategory(code: "20", name: "Refs", budget: 4200),
-            BudgetCategory(code: "25", name: "Equipment", budget: 3000),
-            BudgetCategory(code: "30", name: "Tournaments", budget: 6400),
-            BudgetCategory(code: "40", name: "Playoffs", budget: 1200),
-            BudgetCategory(code: "60", name: "Travel", budget: 2500),
-            BudgetCategory(code: "71", name: "Goalie coach", budget: 2800),
-            BudgetCategory(code: "82", name: "Recognition", budget: 600),
-            BudgetCategory(code: "83", name: "Parties", budget: 1500),
-            BudgetCategory(code: "97", name: "Coaches", budget: 16000),
-            BudgetCategory(code: "98", name: "Bank", budget: 200),
-            BudgetCategory(code: "99", name: "Other", budget: 500),
+            BudgetCategory(code: "10", name: "Assessments", budget: 0),
+            BudgetCategory(code: "20", name: "Refs", budget: 0),
+            BudgetCategory(code: "25", name: "Equipment", budget: 0),
+            BudgetCategory(code: "30", name: "Tournaments", budget: 0),
+            BudgetCategory(code: "40", name: "Playoffs", budget: 0),
+            BudgetCategory(code: "60", name: "Travel", budget: 0),
+            BudgetCategory(code: "71", name: "Goalie coach", budget: 0),
+            BudgetCategory(code: "82", name: "Recognition", budget: 0),
+            BudgetCategory(code: "83", name: "Parties", budget: 0),
+            BudgetCategory(code: "97", name: "Coaches", budget: 0),
+            BudgetCategory(code: "98", name: "Bank", budget: 0),
+            BudgetCategory(code: "99", name: "Other", budget: 0),
         ]
-        reimbursements = [
-            Reimbursement(who: "Mel Rolph", desc: "Team water bottles ×20", amount: 284.75, categoryCode: "25", status: .pending, statusNote: "Submitted 2 days ago"),
-            Reimbursement(who: "Torin Wang", desc: "Medical supplies, trainer bag", amount: 142.08, categoryCode: "25", status: .pending, statusNote: "Submitted yesterday"),
-            Reimbursement(who: "Jordan Reeves", desc: "Player recognition — hard hat & chef hat", amount: 653.72, categoryCode: "82", status: .pending, statusNote: "Submitted 4 days ago"),
-        ]
-        sponsors = [
-            Sponsor(name: "Hillside Dental", meta: "Received Nov 3 · rink board", amount: 4500, status: .received),
-            Sponsor(name: "Kerr St. Automotive", meta: "Committed, invoice sent", amount: 3000, status: .committed),
-            Sponsor(name: "Bronte Physio", meta: "In conversation", amount: 1500, status: .inConversation),
-        ]
-        payers = ["Team account", "Mel Rolph", "Jordan Reeves", "Torin Wang", "Jeff Perry"]
-
-        let d = LedgerStore.date
-        ledger = [
-            LedgerEntry(date: d(2026, 6, 10), desc: "Player levy — instalment #1 (17 of 17)", deposit: 17000, incomeSource: .levy),
-            LedgerEntry(date: d(2026, 9, 1), desc: "Player levy — instalment #2 (17 of 17)", deposit: 17000, incomeSource: .levy),
-            LedgerEntry(date: d(2026, 9, 5), desc: "Oakville Rangers Assessment #1", withdrawal: 18539, categoryCode: "10"),
-            LedgerEntry(date: d(2026, 10, 1), desc: "Player levy — instalment #3 (14 of 17)", deposit: 14000, incomeSource: .levy),
-            LedgerEntry(date: d(2026, 10, 15), desc: "Oakville Rangers Assessment #2", withdrawal: 18539, categoryCode: "10"),
-            LedgerEntry(date: d(2026, 10, 20), desc: "Tournament — St. Thomas Boston Pizza Cup", withdrawal: 1700, categoryCode: "30"),
-            LedgerEntry(date: d(2026, 11, 3), desc: "Sponsorship — Hillside Dental", deposit: 4500, incomeSource: .sponsorship),
-            LedgerEntry(date: d(2026, 11, 10), desc: "Refs & timekeepers — home games ×13", withdrawal: 1850, categoryCode: "20"),
-            LedgerEntry(date: d(2026, 11, 18), desc: "Goalie instruction ×3 sessions", withdrawal: 900, categoryCode: "71"),
-            LedgerEntry(date: d(2026, 11, 24), desc: "Practice jerseys & team supplies", withdrawal: 1486.72, categoryCode: "25"),
-            LedgerEntry(date: d(2026, 11, 30), desc: "Coach compensation — Nov", withdrawal: 4000, categoryCode: "97"),
-            LedgerEntry(date: d(2026, 12, 2), desc: "Fundraising — raffle night", deposit: 1280, incomeSource: .fundraising),
-            LedgerEntry(date: d(2026, 12, 8), desc: "Signing party — gift bags & balloons", withdrawal: 341.43, categoryCode: "83"),
-            LedgerEntry(date: d(2026, 12, 8), desc: "TeamSnap subscription", withdrawal: 169.84, categoryCode: "83"),
-            LedgerEntry(date: d(2026, 12, 9), desc: "Summer pool party — pizza", withdrawal: 209.19, categoryCode: "83"),
-            LedgerEntry(date: d(2026, 12, 15), desc: "Bank charges — Q2", withdrawal: 138.6, categoryCode: "98"),
-        ]
-    }
-
-    private static func seedRoster() -> [Player] {
-        let raw: [(Int, String, Position, [Bool])] = [
-            (34, "Paxton Boone", .forward, [true, true, false, false]),
-            (87, "Emmet Buccitti", .defence, [true, true, false, false]),
-            (14, "Finnegan Cheeseman", .defence, [true, true, true, false]),
-            (29, "Owen Cooper", .goalie, [true, true, true, false]),
-            (12, "Luke Fiorino", .forward, [true, true, true, false]),
-            (77, "Victor Gomes", .defence, [true, true, true, false]),
-            (10, "Weston Hughes", .forward, [true, true, false, false]),
-            (73, "Stuart Kendon", .forward, [true, true, true, false]),
-            (86, "Preston Lau", .forward, [true, true, true, false]),
-            (13, "Hunter Maxwell", .forward, [true, true, true, false]),
-            (2, "Pierce Perry", .defence, [true, true, true, false]),
-            (44, "Ben Reeves", .forward, [true, true, true, false]),
-            (15, "Harrison Rolph", .defence, [true, true, true, false]),
-            (93, "Filip Strenk", .forward, [true, true, true, false]),
-            (88, "Alexander Wang", .defence, [true, true, true, false]),
-            (1, "Jacko Wan", .goalie, [true, true, true, false]),
-            (21, "Anna Zhou", .forward, [true, true, true, false]),
-        ]
-        return raw.map { Player(jerseyNumber: $0.0, name: $0.1, position: $0.2, instalmentsPaid: $0.3) }
+        reimbursements = []
+        sponsors = []
+        payers = ["Team account"]
+        ledger = []
     }
 
     // MARK: - Derived money (single source of truth)

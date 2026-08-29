@@ -25,11 +25,11 @@ struct MoneyInView: View {
                 )
                 revenueLine(
                     name: "Sponsorship", actual: store.sponsorshipIncome, target: store.sponsorshipSeasonTarget,
-                    note: "Two of four boards sold; plaques budgeted separately."
+                    note: "\(store.sponsors.filter { $0.status == .received }.count) of \(store.sponsors.count) sponsors received."
                 )
                 revenueLine(
-                    name: "Fundraising", actual: store.fundraisingIncome, target: max(store.fundraisingIncome, 1),
-                    note: "Raffle night, Dec 2. No further events planned."
+                    name: "Fundraising", actual: store.fundraisingIncome, target: store.fundraisingIncome,
+                    note: "Tracked as fundraising deposits come in."
                 )
             }
 

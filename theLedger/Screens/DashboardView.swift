@@ -44,12 +44,14 @@ struct DashboardView: View {
             }
 
             // Needs you
-            Kicker(text: "Needs you")
-                .padding(.top, 32)
-                .padding(.bottom, 6)
-            VStack(spacing: 0) {
-                ForEach(inboxItems, id: \.title) { item in
-                    ActionRow(title: item.title, meta: item.meta, amount: item.amount, amountColor: item.color, action: item.action)
+            if !inboxItems.isEmpty {
+                Kicker(text: "Needs you")
+                    .padding(.top, 32)
+                    .padding(.bottom, 6)
+                VStack(spacing: 0) {
+                    ForEach(inboxItems, id: \.title) { item in
+                        ActionRow(title: item.title, meta: item.meta, amount: item.amount, amountColor: item.color, action: item.action)
+                    }
                 }
             }
 
@@ -136,33 +138,47 @@ struct DashboardView: View {
         let action: () -> Void
     }
 
+    /// Only surfaces items that actually have something behind them — an empty
+    /// roster or a clean inbox shouldn't produce fake nag rows.
     private var inboxItems: [InboxItem] {
         let pendingCount = store.reimbursements.filter { $0.status != .paid }.count
         let unpaid3 = store.unpaidInstalment3Count
         let surplus = store.projectedSurplus
-        return [
-            InboxItem(
+
+        var items: [InboxItem] = []
+
+        if pendingCount > 0 {
+            items.append(InboxItem(
                 title: "Reimbursements to approve",
                 meta: "\(pendingCount) requests from parents and staff",
                 amount: Formatting.money(store.pendingReimbursementTotal),
                 color: Theme.clubDarkRed,
                 action: { nav.push(.reimbursements) }
-            ),
-            InboxItem(
+            ))
+        }
+
+        if unpaid3 > 0, store.instalmentDueDates.count > 2 {
+            items.append(InboxItem(
                 title: "Instalment #3 unpaid",
-                meta: "\(unpaid3) players outstanding since Oct 1",
+                meta: "\(unpaid3) players outstanding since \(Formatting.shortDate(store.instalmentDueDates[2]))",
                 amount: Formatting.money(Double(unpaid3) * 1000, cents: false),
                 color: Theme.clubDarkRed,
                 action: { nav.goTab(.levies) }
-            ),
-            InboxItem(
-                title: "Lake Placid deposit due",
+            ))
+        }
+
+        if store.scheduledPaymentAmount > 0 {
+            items.append(InboxItem(
+                title: "Scheduled payment due",
                 meta: store.scheduledPaymentNote,
                 amount: Formatting.money(store.scheduledPaymentAmount, cents: false),
                 color: Theme.ink,
                 action: { nav.push(.category(store.scheduledPaymentCategoryCode)) }
-            ),
-            InboxItem(
+            ))
+        }
+
+        if !store.roster.isEmpty {
+            items.append(InboxItem(
                 title: "Projected refund per player",
                 meta: surplus >= 0
                     ? "Surplus of \(Formatting.money(surplus)) across \(store.roster.count) players"
@@ -170,7 +186,9 @@ struct DashboardView: View {
                 amount: Formatting.money(store.perPlayerRefund),
                 color: surplus >= 0 ? Theme.accent700 : Theme.clubDarkRed,
                 action: { nav.push(.refunds) }
-            ),
-        ]
+            ))
+        }
+
+        return items
     }
 }

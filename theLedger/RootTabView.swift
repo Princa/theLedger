@@ -3,6 +3,10 @@ import SwiftUI
 struct RootTabView: View {
     @State private var store = LedgerStore()
     @State private var nav = Navigator()
+    @State private var edgeDragOffset: CGFloat = 0
+
+    private let edgeStripWidth: CGFloat = 24
+    private let backThreshold: CGFloat = 70
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,13 +18,23 @@ struct RootTabView: View {
                 asOf: store.asOfDate
             )
 
-            ScrollView {
-                content
-                    .padding(.horizontal, Theme.screenPadding)
-                    .padding(.top, 6)
-                    .padding(.bottom, 40)
+            ZStack(alignment: .leading) {
+                ScrollView {
+                    content
+                        .padding(.horizontal, Theme.screenPadding)
+                        .padding(.top, 6)
+                        .padding(.bottom, 40)
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .offset(x: edgeDragOffset)
+
+                if nav.sub != nil {
+                    Color.clear
+                        .frame(width: edgeStripWidth)
+                        .contentShape(Rectangle())
+                        .gesture(edgeBackGesture)
+                }
             }
-            .scrollDismissesKeyboard(.interactively)
 
             TabBar(selected: nav.tab) { tab in
                 nav.goTab(tab)
@@ -31,6 +45,25 @@ struct RootTabView: View {
         .environment(store)
         .environment(nav)
         .tint(Theme.accent)
+    }
+
+    /// Mirrors iOS's screen-edge interactive-pop: only recognized when the
+    /// drag starts within the leading-edge strip, so it never competes with
+    /// vertical scrolling or a row's own swipe-to-delete gesture.
+    private var edgeBackGesture: some Gesture {
+        DragGesture(minimumDistance: 5, coordinateSpace: .local)
+            .onChanged { value in
+                edgeDragOffset = max(0, min(value.translation.width, 200))
+            }
+            .onEnded { value in
+                let shouldGoBack = value.translation.width > backThreshold
+                withAnimation(.easeOut(duration: 0.22)) {
+                    edgeDragOffset = 0
+                }
+                if shouldGoBack {
+                    nav.back()
+                }
+            }
     }
 
     @ViewBuilder
