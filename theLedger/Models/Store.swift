@@ -63,14 +63,18 @@ final class LedgerStore {
 
     // MARK: - Starting data
     //
-    // No fictional players, staff, transactions, reimbursements, or sponsors —
-    // a real treasurer adds all of that from the app. The budget line names
-    // stay as a reusable expense-type template (the "ORHC treasurer template"),
-    // with every budget reset to $0 since there's no in-app editor for that
-    // figure yet — set them by logging real expenses/income against each line.
+    // Roster mirrors the real Oakville Rangers U12 AA team as already
+    // entered in GameDay, so both apps agree on the same players by
+    // default — instalments all start unpaid, since GameDay doesn't
+    // track levy payments. No fictional staff, transactions,
+    // reimbursements, or sponsors — a real treasurer adds those from the
+    // app. The budget line names stay as a reusable expense-type
+    // template (the "ORHC treasurer template"), with every budget reset
+    // to $0 since there's no in-app editor for that figure yet — set
+    // them by logging real expenses/income against each line.
 
     init() {
-        roster = []
+        roster = LedgerStore.defaultRoster()
         staff = []
         categories = [
             BudgetCategory(code: "10", name: "Assessments", budget: 0),
@@ -90,6 +94,29 @@ final class LedgerStore {
         sponsors = []
         payers = ["Team account"]
         ledger = []
+    }
+
+    /// Oakville Rangers U12 AA roster, matching GameDay's team database.
+    private static func defaultRoster() -> [Player] {
+        let raw: [(Int, String, Position)] = [
+            (1, "Jacko Wan", .goalie),
+            (2, "Pierce Perry", .defence),
+            (10, "Weston Hughes", .forward),
+            (12, "Luke Fiorino", .forward),
+            (13, "Hunter Maxwell", .forward),
+            (14, "Finnegan Cheeseman", .defence),
+            (15, "Harrison Rolph", .defence),
+            (21, "Anna Zhou", .forward),
+            (29, "Owen Cooper", .goalie),
+            (34, "Paxton Boone", .forward),
+            (44, "Ben Reeves", .forward),
+            (73, "Stuart Kendon", .forward),
+            (77, "Victor Gomes", .defence),
+            (86, "Preston Lau", .forward),
+            (87, "Emmet Buccitti", .defence),
+            (93, "Filip Strenk", .forward),
+        ]
+        return raw.map { Player(jerseyNumber: $0.0, name: $0.1, position: $0.2) }
     }
 
     // MARK: - Derived money (single source of truth)
