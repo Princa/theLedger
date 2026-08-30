@@ -114,6 +114,7 @@ final class LedgerStore {
             (77, "Victor Gomes", .defence),
             (86, "Preston Lau", .forward),
             (87, "Emmet Buccitti", .defence),
+            (88, "Alexander Wang", .defence),
             (93, "Filip Strenk", .forward),
         ]
         return raw.map { Player(jerseyNumber: $0.0, name: $0.1, position: $0.2) }

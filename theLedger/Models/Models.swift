@@ -159,6 +159,6 @@ struct Team {
     var signingAuthority: String = "Treasurer + Manager"
     var levySchedule: String = "$1,000 × 4"
     var visibleTo: String = "Treasurer, Manager, Coaches"
-    var seasonStart: Date = DateComponents(calendar: .current, year: 2026, month: 6, day: 1).date!
+    var seasonStart: Date = DateComponents(calendar: .current, year: 2026, month: 9, day: 1).date!
     var seasonEnd: Date = DateComponents(calendar: .current, year: 2027, month: 4, day: 30).date!
 }
