@@ -25,15 +25,11 @@ targets:
           - UIInterfaceOrientationLandscapeRight
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.oakvillerangers.rinkledger
+        PRODUCT_BUNDLE_IDENTIFIER: princa.RinkLedger
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"
-        # Simulator-only project: pin signing off so Xcode's automatic
-        # provisioning resolution can never silently rewrite the bundle
-        # identifier (it did, twice, once it found a real dev team).
-        CODE_SIGN_STYLE: Manual
-        CODE_SIGN_IDENTITY: ""
-        CODE_SIGNING_REQUIRED: "NO"
-        CODE_SIGNING_ALLOWED: "NO"
-        DEVELOPMENT_TEAM: ""
+        # Matches the signing setup already used by the GameDay app under
+        # this same Apple ID, so RinkLedger can build to a real device too.
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 2Y7JY873N6
