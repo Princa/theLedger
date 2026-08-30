@@ -33,7 +33,7 @@ struct TeamSettingsView: View {
                     .resizable()
                     .frame(width: 54, height: 54)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(store.team.name).font(Theme.serif(17))
+                    Text(store.team.name).font(Theme.serif(17)).foregroundStyle(Theme.ink)
                     Text(store.team.division).font(Theme.serif(13)).foregroundStyle(Theme.muted)
                     Text(store.team.founded).font(Theme.serif(12)).foregroundStyle(Theme.clubDarkRed).padding(.top, 1)
                 }
@@ -50,7 +50,7 @@ struct TeamSettingsView: View {
                     HStack {
                         Text(row.label).font(Theme.serif(15)).foregroundStyle(Theme.mutedStrong)
                         Spacer()
-                        Text(row.value).font(Theme.serif(15)).multilineTextAlignment(.trailing)
+                        Text(row.value).font(Theme.serif(15)).foregroundStyle(Theme.ink).multilineTextAlignment(.trailing)
                     }
                     .padding(.vertical, 13)
                     .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
@@ -118,7 +118,7 @@ private struct StaffRowView: View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: onToggle) {
                 HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text(member.name).font(Theme.serif(15))
+                    Text(member.name).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                     Spacer()
                     Text(member.role.rawValue).font(Theme.serif(13)).foregroundStyle(Theme.muted)
                 }
@@ -132,6 +132,7 @@ private struct StaffRowView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     TextField("Name", text: nameBinding)
                         .font(Theme.serif(15))
+                        .foregroundStyle(Theme.ink)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
                         .background(Theme.surface)
@@ -179,7 +180,7 @@ private struct PlayerRowView: View {
             Button(action: onToggle) {
                 HStack(alignment: .firstTextBaseline, spacing: 12) {
                     Text("\(player.jerseyNumber)").font(Theme.serif(14)).monospacedDigit().foregroundStyle(Theme.muted).frame(width: 34, alignment: .leading)
-                    Text(player.name).font(Theme.serif(15))
+                    Text(player.name).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                     Spacer()
                     Text(player.position.rawValue).font(Theme.serif(13)).foregroundStyle(Theme.muted)
                 }
@@ -195,6 +196,7 @@ private struct PlayerRowView: View {
                         TextField("##", text: numberBinding)
                             .keyboardType(.numberPad)
                             .font(Theme.serif(15))
+                            .foregroundStyle(Theme.ink)
                             .monospacedDigit()
                             .padding(.horizontal, 10)
                             .frame(width: 60, height: 40)
@@ -203,6 +205,7 @@ private struct PlayerRowView: View {
 
                         TextField("Player name", text: nameBinding)
                             .font(Theme.serif(15))
+                            .foregroundStyle(Theme.ink)
                             .padding(.horizontal, 10)
                             .frame(height: 40)
                             .background(Theme.surface)

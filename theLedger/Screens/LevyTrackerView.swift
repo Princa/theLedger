@@ -10,7 +10,7 @@ struct LevyTrackerView: View {
             HStack(alignment: .top, spacing: 26) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Collected").font(Theme.serif(12)).foregroundStyle(Theme.muted)
-                    Text(Formatting.money(store.levyIncome, cents: false)).font(Theme.serif(26)).monospacedDigit()
+                    Text(Formatting.money(store.levyIncome, cents: false)).font(Theme.serif(26)).monospacedDigit().foregroundStyle(Theme.ink)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Outstanding").font(Theme.serif(12)).foregroundStyle(Theme.muted)
@@ -44,6 +44,7 @@ struct LevyTrackerView: View {
                             .frame(width: 34, alignment: .leading)
                         Text(player.name)
                             .font(Theme.serif(15))
+                            .foregroundStyle(Theme.ink)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         HStack(spacing: 7) {
                             ForEach(0..<4, id: \.self) { i in

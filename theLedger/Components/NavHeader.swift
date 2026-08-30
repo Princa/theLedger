@@ -21,6 +21,7 @@ struct ScreenHeader: View {
                         Text("ORHC · U12 AA")
                             .font(Theme.serif(11))
                             .tracking(1.2)
+                            .foregroundStyle(Theme.ink)
                     }
                 } else if let onBack {
                     Button(action: onBack) {
@@ -45,6 +46,7 @@ struct ScreenHeader: View {
             Text(title)
                 .font(Theme.navTitle)
                 .tracking(-0.3)
+                .foregroundStyle(Theme.ink)
                 .padding(.top, 8)
 
             Text(subtitle)

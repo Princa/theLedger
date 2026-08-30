@@ -21,6 +21,7 @@ struct DashboardView: View {
                     .font(Theme.heroBalance)
                     .tracking(-1.2)
                     .monospacedDigit()
+                    .foregroundStyle(Theme.ink)
                 StatTrio(items: [
                     .init(label: "Committed", value: Formatting.money(store.committed)),
                     .init(label: "Free to spend", value: Formatting.money(store.freeToSpend)),
@@ -108,9 +109,9 @@ struct DashboardView: View {
     private func burnRow(label: String, pct: Int, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text(label).font(Theme.serif(14))
+                Text(label).font(Theme.serif(14)).foregroundStyle(Theme.ink)
                 Spacer()
-                Text("\(pct)%").font(Theme.serif(14)).monospacedDigit()
+                Text("\(pct)%").font(Theme.serif(14)).monospacedDigit().foregroundStyle(Theme.ink)
             }
             ProgressBarView(pct: pct, color: color, height: 6)
         }

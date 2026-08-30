@@ -30,7 +30,7 @@ struct TreasurersReportView: View {
             VStack(spacing: 0) {
                 ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
                     HStack(alignment: .firstTextBaseline) {
-                        Text(line.label).font(Theme.serif(line.size))
+                        Text(line.label).font(Theme.serif(line.size)).foregroundStyle(Theme.ink)
                         Spacer()
                         Text(line.value).font(Theme.serif(line.size)).monospacedDigit().foregroundStyle(line.color)
                     }

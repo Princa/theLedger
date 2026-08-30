@@ -9,15 +9,15 @@ struct StatementImportView: View {
             HStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Selected").font(Theme.serif(12)).foregroundStyle(Theme.muted)
-                    Text("\(store.importSelectedCount) of \(store.importedRows.count)").font(Theme.serif(19))
+                    Text("\(store.importSelectedCount) of \(store.importedRows.count)").font(Theme.serif(19)).foregroundStyle(Theme.ink)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Net").font(Theme.serif(12)).foregroundStyle(Theme.muted)
-                    Text(Formatting.signedMoney(store.importNet)).font(Theme.serif(19)).monospacedDigit()
+                    Text(Formatting.signedMoney(store.importNet)).font(Theme.serif(19)).monospacedDigit().foregroundStyle(Theme.ink)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("New balance").font(Theme.serif(12)).foregroundStyle(Theme.muted)
-                    Text(Formatting.money(store.importNewBalance)).font(Theme.serif(19)).monospacedDigit()
+                    Text(Formatting.money(store.importNewBalance)).font(Theme.serif(19)).monospacedDigit().foregroundStyle(Theme.ink)
                 }
             }
             .padding(.top, 14)
@@ -87,7 +87,7 @@ private struct ImportRowView: View {
                 .buttonStyle(.plain)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(row.desc).font(Theme.serif(15))
+                    Text(row.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                     Text(meta).font(Theme.serif(12)).foregroundStyle(Theme.muted)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

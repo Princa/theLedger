@@ -41,6 +41,7 @@ struct RootTabView: View {
             }
         }
         .background(Theme.paper.ignoresSafeArea())
+        .foregroundStyle(Theme.ink)
         .toast(store.toastMessage)
         .environment(store)
         .environment(nav)

@@ -41,7 +41,7 @@ struct CategoryDetailView: View {
                     SwipeToDeleteRow(onDelete: { store.deleteLedgerEntry(entry.id) }) {
                         HStack(alignment: .firstTextBaseline, spacing: 12) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(entry.desc).font(Theme.serif(15))
+                                Text(entry.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                                 Text("\(Formatting.shortDate(entry.date)) · paid from team account")
                                     .font(Theme.serif(12)).foregroundStyle(Theme.muted)
                             }
@@ -49,6 +49,7 @@ struct CategoryDetailView: View {
                             Text(Formatting.money(entry.withdrawal ?? 0))
                                 .font(Theme.serif(15))
                                 .monospacedDigit()
+                                .foregroundStyle(Theme.ink)
                         }
                         .padding(.vertical, 12)
                         .frame(minHeight: 44)
@@ -59,7 +60,7 @@ struct CategoryDetailView: View {
                 ForEach(reimbLines) { r in
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(r.desc).font(Theme.serif(15))
+                            Text(r.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                             Text("Reimbursement to \(r.who) · \(r.status == .pending ? "pending" : "approved")")
                                 .font(Theme.serif(12)).foregroundStyle(Theme.muted)
                         }
@@ -67,6 +68,7 @@ struct CategoryDetailView: View {
                         Text(Formatting.money(r.amount))
                             .font(Theme.serif(15))
                             .monospacedDigit()
+                            .foregroundStyle(Theme.ink)
                     }
                     .padding(.vertical, 12)
                     .frame(minHeight: 44)

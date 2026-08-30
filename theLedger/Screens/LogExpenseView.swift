@@ -32,10 +32,11 @@ struct LogExpenseView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Kicker(text: "Amount")
                 HStack(alignment: .lastTextBaseline, spacing: 6) {
-                    Text("$").font(Theme.serif(40))
+                    Text("$").font(Theme.serif(40)).foregroundStyle(Theme.ink)
                     TextField("0.00", text: $amountText)
                         .keyboardType(.decimalPad)
                         .font(Theme.serif(44))
+                        .foregroundStyle(Theme.ink)
                         .tracking(-0.5)
                         .monospacedDigit()
                         .focused($amountFocused)
@@ -54,6 +55,7 @@ struct LogExpenseView: View {
                 text: $desc
             )
             .font(Theme.serif(16))
+            .foregroundStyle(Theme.ink)
             .padding(.horizontal, 10)
             .frame(height: 46)
             .background(Theme.surface)
@@ -128,6 +130,7 @@ struct LogExpenseView: View {
                 HStack(spacing: 6) {
                     TextField("e.g. Skills clinic", text: $newCategoryText)
                         .font(Theme.serif(15))
+                        .foregroundStyle(Theme.ink)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
                         .background(Theme.surface)
@@ -159,6 +162,7 @@ struct LogExpenseView: View {
                 HStack(spacing: 6) {
                     TextField("Parent or staff name", text: $newPayerText)
                         .font(Theme.serif(15))
+                        .foregroundStyle(Theme.ink)
                         .padding(.horizontal, 10)
                         .frame(height: 40)
                         .background(Theme.surface)

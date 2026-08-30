@@ -32,7 +32,7 @@ struct RefundsView: View {
                         Text("\(player.jerseyNumber)")
                             .font(Theme.serif(14)).monospacedDigit().foregroundStyle(Theme.muted)
                             .frame(width: 34, alignment: .leading)
-                        Text(player.name).font(Theme.serif(15)).frame(maxWidth: .infinity, alignment: .leading)
+                        Text(player.name).font(Theme.serif(15)).foregroundStyle(Theme.ink).frame(maxWidth: .infinity, alignment: .leading)
                         StatusTag(
                             text: player.hasClearedLevy ? "Levy clear" : "Levy owing",
                             background: player.hasClearedLevy ? Theme.accent100 : Theme.clubRed.opacity(0.14),
@@ -41,6 +41,7 @@ struct RefundsView: View {
                         Text(Formatting.money(store.perPlayerRefund))
                             .font(Theme.serif(15))
                             .monospacedDigit()
+                            .foregroundStyle(Theme.ink)
                             .frame(width: 62, alignment: .trailing)
                     }
                     .padding(.vertical, 11)

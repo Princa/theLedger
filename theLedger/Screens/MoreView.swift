@@ -29,7 +29,7 @@ struct MoreView: View {
                 Button(action: { nav.push(row.route) }) {
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(row.label).font(Theme.serif(17))
+                            Text(row.label).font(Theme.serif(17)).foregroundStyle(Theme.ink)
                             Text(row.meta).font(Theme.serif(13)).foregroundStyle(Theme.muted)
                         }
                         Spacer()

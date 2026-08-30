@@ -116,7 +116,7 @@ private struct LedgerRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.desc).font(Theme.serif(15))
+                Text(entry.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                 Text(Formatting.shortDate(entry.date) + metaSuffix)
                     .font(Theme.serif(12)).foregroundStyle(Theme.muted)
             }

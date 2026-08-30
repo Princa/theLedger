@@ -11,7 +11,7 @@ struct MoneyInView: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Received YTD").font(Theme.serif(12)).foregroundStyle(Theme.muted)
-                Text(Formatting.money(store.revenueReceived, cents: false)).font(Theme.heroReimbTotal).monospacedDigit()
+                Text(Formatting.money(store.revenueReceived, cents: false)).font(Theme.heroReimbTotal).monospacedDigit().foregroundStyle(Theme.ink)
                 Text("Against a season plan of \(Formatting.money(store.projectedRevenue, cents: false)).")
                     .font(Theme.serif(13)).foregroundStyle(Theme.mutedStrong)
             }
@@ -41,7 +41,7 @@ struct MoneyInView: View {
                     SwipeToDeleteRow(onDelete: { store.deleteLedgerEntry(entry.id) }) {
                         HStack(alignment: .firstTextBaseline, spacing: 12) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(entry.desc).font(Theme.serif(15))
+                                Text(entry.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                                 Text(Formatting.shortDate(entry.date) + (entry.incomeSource.map { " · \($0.rawValue)" } ?? ""))
                                     .font(Theme.serif(12)).foregroundStyle(Theme.muted)
                             }
@@ -66,7 +66,7 @@ struct MoneyInView: View {
                 ForEach(store.sponsors) { sponsor in
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(sponsor.name).font(Theme.serif(15))
+                            Text(sponsor.name).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                             Text(sponsor.meta).font(Theme.serif(12)).foregroundStyle(Theme.muted)
                         }
                         Spacer()
@@ -86,7 +86,7 @@ struct MoneyInView: View {
         let pct = target > 0 ? min(100, Int((actual / target * 100).rounded())) : 0
         return VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
-                Text(name).font(Theme.serif(17))
+                Text(name).font(Theme.serif(17)).foregroundStyle(Theme.ink)
                 Spacer()
                 Text("\(Formatting.money(actual, cents: false)) / \(Formatting.money(target, cents: false))")
                     .font(Theme.serif(14)).monospacedDigit().foregroundStyle(Theme.mutedStrong)

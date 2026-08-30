@@ -12,7 +12,7 @@ struct ActionRow: View {
         Button(action: action) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(Theme.serif(16))
+                    Text(title).font(Theme.serif(16)).foregroundStyle(Theme.ink)
                     Text(meta).font(Theme.serif(13)).foregroundStyle(Theme.muted)
                 }
                 Spacer()
@@ -45,7 +45,7 @@ struct CategoryProgressRow: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(name).font(Theme.serif(15))
+                    Text(name).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                     Spacer()
                     Text(trailingLabel)
                         .font(Theme.serif(14))
@@ -75,7 +75,7 @@ struct TransactionRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(desc).font(Theme.serif(15))
+                Text(desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
                 Text(date).font(Theme.serif(12)).foregroundStyle(Theme.muted)
             }
             Spacer()

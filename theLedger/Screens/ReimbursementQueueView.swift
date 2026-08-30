@@ -7,7 +7,7 @@ struct ReimbursementQueueView: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Owed to parents and staff").font(Theme.serif(12)).foregroundStyle(Theme.muted)
-                Text(Formatting.money(store.pendingReimbursementTotal)).font(Theme.heroReimbTotal).monospacedDigit()
+                Text(Formatting.money(store.pendingReimbursementTotal)).font(Theme.heroReimbTotal).monospacedDigit().foregroundStyle(Theme.ink)
             }
             .padding(.vertical, 18)
 
@@ -15,11 +15,11 @@ struct ReimbursementQueueView: View {
                 ForEach(store.reimbursements) { r in
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(alignment: .firstTextBaseline) {
-                            Text(r.who).font(Theme.serif(17))
+                            Text(r.who).font(Theme.serif(17)).foregroundStyle(Theme.ink)
                             Spacer()
-                            Text(Formatting.money(r.amount)).font(Theme.serif(17)).monospacedDigit()
+                            Text(Formatting.money(r.amount)).font(Theme.serif(17)).monospacedDigit().foregroundStyle(Theme.ink)
                         }
-                        Text(r.desc).font(Theme.serif(14)).padding(.top, 2)
+                        Text(r.desc).font(Theme.serif(14)).foregroundStyle(Theme.ink).padding(.top, 2)
                         Text("\(r.statusNote) · \(store.category(for: r.categoryCode)?.name ?? "")")
                             .font(Theme.serif(12)).foregroundStyle(Theme.muted).padding(.top, 2)
 
