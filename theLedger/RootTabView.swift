@@ -1,6 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct RootTabView: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var store = LedgerStore()
     @State private var nav = Navigator()
     @State private var edgeDragOffset: CGFloat = 0
@@ -40,6 +42,7 @@ struct RootTabView: View {
         .environment(store)
         .environment(nav)
         .tint(Theme.accent)
+        .task { store.attach(modelContext) }
     }
 
     /// Mirrors iOS's screen-edge interactive-pop: only recognized when the

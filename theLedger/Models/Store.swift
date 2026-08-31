@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SwiftData
 
 struct ImportRow: Identifiable {
     let id = UUID()
@@ -44,16 +45,114 @@ final class LedgerStore {
 
     var sponsorshipSeasonTarget: Double = 0
 
+    // MARK: - Persistence
+
+    /// nil until `attach(_:)` runs (once, from RootTabView on first appearance).
+    private var modelContext: ModelContext?
+    private var ledgerSequenceCounter = 0
+
+    private var context: ModelContext {
+        guard let modelContext else {
+            fatalError("LedgerStore used before attach(_:) was called")
+        }
+        return modelContext
+    }
+
+    /// Wires this store to the app's SwiftData store: loads existing data, or
+    /// seeds it (once) on a brand-new install. Safe to call more than once —
+    /// only the first call does anything.
+    func attach(_ context: ModelContext) {
+        guard modelContext == nil else { return }
+        modelContext = context
+        loadOrSeed()
+    }
+
+    private func fetchAll<T: PersistentModel>(_ type: T.Type, sortBy: [SortDescriptor<T>] = []) -> [T] {
+        guard let modelContext else { return [] }
+        var descriptor = FetchDescriptor<T>()
+        descriptor.sortBy = sortBy
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func save() {
+        try? modelContext?.save()
+    }
+
+    private func refreshRoster() { roster = fetchAll(Player.self, sortBy: [SortDescriptor(\.jerseyNumber)]) }
+    private func refreshStaff() { staff = fetchAll(StaffMember.self) }
+    private func refreshCategories() { categories = fetchAll(BudgetCategory.self, sortBy: [SortDescriptor(\.sortIndex)]) }
+    private func refreshLedger() { ledger = fetchAll(LedgerEntry.self, sortBy: [SortDescriptor(\.sequence)]) }
+    private func refreshReimbursements() { reimbursements = fetchAll(Reimbursement.self) }
+    private func refreshSponsors() { sponsors = fetchAll(Sponsor.self) }
+    private func refreshPayers() { payers = ["Team account"] + fetchAll(Payer.self, sortBy: [SortDescriptor(\.name)]).map(\.name) }
+
+    private func nextSequence() -> Int {
+        defer { ledgerSequenceCounter += 1 }
+        return ledgerSequenceCounter
+    }
+
+    /// Roster mirrors the real Oakville Rangers U12 AA team as already
+    /// entered in GameDay, so both apps agree on the same players by
+    /// default — instalments all start unpaid, since GameDay doesn't
+    /// track levy payments. No fictional staff, transactions,
+    /// reimbursements, or sponsors — a real treasurer adds those from the
+    /// app. The budget line names stay as a reusable expense-type
+    /// template (the "ORHC treasurer template"), with every budget reset
+    /// to $0 since there's no in-app editor for that figure yet — set
+    /// them by logging real expenses/income against each line.
+    private func loadOrSeed() {
+        guard let modelContext else { return }
+
+        if let existingTeam = fetchAll(Team.self).first {
+            team = existingTeam
+        } else {
+            let newTeam = Team()
+            modelContext.insert(newTeam)
+            team = newTeam
+        }
+
+        refreshCategories()
+        if categories.isEmpty {
+            for (i, seed) in LedgerStore.defaultCategories().enumerated() {
+                seed.sortIndex = i
+                modelContext.insert(seed)
+            }
+            refreshCategories()
+        }
+
+        refreshRoster()
+        if roster.isEmpty {
+            for p in LedgerStore.defaultRoster() { modelContext.insert(p) }
+            refreshRoster()
+        }
+
+        refreshStaff()
+        refreshLedger()
+        ledgerSequenceCounter = (ledger.map(\.sequence).max() ?? -1) + 1
+        refreshReimbursements()
+        refreshSponsors()
+        refreshPayers()
+
+        save()
+    }
+
     // MARK: - Core state
+    //
+    // Populated by attach(_:) / the refresh*() helpers above — these are
+    // plain in-memory snapshots of what's in the SwiftData store, not the
+    // store itself, so every mutating method below re-fetches after it
+    // writes to keep them in sync (and to make sure @Observable sees a
+    // fresh array, since mutating an object *inside* an unchanged array
+    // reference wouldn't otherwise trigger a SwiftUI update).
 
     var team = Team()
-    var roster: [Player]
-    var staff: [StaffMember]
-    var categories: [BudgetCategory]
-    var ledger: [LedgerEntry]
-    var reimbursements: [Reimbursement]
-    var sponsors: [Sponsor]
-    var payers: [String]
+    var roster: [Player] = []
+    var staff: [StaffMember] = []
+    var categories: [BudgetCategory] = []
+    var ledger: [LedgerEntry] = []
+    var reimbursements: [Reimbursement] = []
+    var sponsors: [Sponsor] = []
+    var payers: [String] = ["Team account"]
 
     var importedRows: [ImportRow] = []
     var importFileName: String = ""
@@ -61,22 +160,8 @@ final class LedgerStore {
     var toastMessage: String? = nil
     private var toastWorkItem: DispatchWorkItem?
 
-    // MARK: - Starting data
-    //
-    // Roster mirrors the real Oakville Rangers U12 AA team as already
-    // entered in GameDay, so both apps agree on the same players by
-    // default — instalments all start unpaid, since GameDay doesn't
-    // track levy payments. No fictional staff, transactions,
-    // reimbursements, or sponsors — a real treasurer adds those from the
-    // app. The budget line names stay as a reusable expense-type
-    // template (the "ORHC treasurer template"), with every budget reset
-    // to $0 since there's no in-app editor for that figure yet — set
-    // them by logging real expenses/income against each line.
-
-    init() {
-        roster = LedgerStore.defaultRoster()
-        staff = []
-        categories = [
+    private static func defaultCategories() -> [BudgetCategory] {
+        [
             BudgetCategory(code: "10", name: "Assessments", budget: 0),
             BudgetCategory(code: "20", name: "Refs", budget: 0),
             BudgetCategory(code: "25", name: "Equipment", budget: 0),
@@ -90,10 +175,6 @@ final class LedgerStore {
             BudgetCategory(code: "98", name: "Bank", budget: 0),
             BudgetCategory(code: "99", name: "Other", budget: 0),
         ]
-        reimbursements = []
-        sponsors = []
-        payers = ["Team account"]
-        ledger = []
     }
 
     /// Oakville Rangers U12 AA roster, matching GameDay's team database.
@@ -219,10 +300,14 @@ final class LedgerStore {
             : rawDesc.trimmingCharacters(in: .whitespacesAndNewlines)
         let toTeam = payer == "Team account"
         if toTeam {
-            ledger.append(LedgerEntry(date: todayDate, desc: desc, withdrawal: amount, categoryCode: categoryCode))
+            context.insert(LedgerEntry(date: todayDate, desc: desc, withdrawal: amount, categoryCode: categoryCode, sequence: nextSequence()))
+            save()
+            refreshLedger()
             say("\(Formatting.money(amount)) recorded to \(cat?.name ?? "").  Balance \(Formatting.money(balance)).")
         } else {
-            reimbursements.append(Reimbursement(who: payer, desc: desc, amount: amount, categoryCode: categoryCode, status: .pending, statusNote: "Submitted just now"))
+            context.insert(Reimbursement(who: payer, desc: desc, amount: amount, categoryCode: categoryCode, status: .pending, statusNote: "Submitted just now"))
+            save()
+            refreshReimbursements()
             say("\(Formatting.money(amount)) queued as a reimbursement to \(payer).")
         }
         return true
@@ -234,7 +319,9 @@ final class LedgerStore {
         let desc = rawDesc.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             ? "\(source.rawValue) received"
             : rawDesc.trimmingCharacters(in: .whitespacesAndNewlines)
-        ledger.append(LedgerEntry(date: todayDate, desc: desc, deposit: amount, incomeSource: source))
+        context.insert(LedgerEntry(date: todayDate, desc: desc, deposit: amount, incomeSource: source, sequence: nextSequence()))
+        save()
+        refreshLedger()
         say("\(Formatting.money(amount)) recorded as \(source.rawValue.lowercased()). Balance \(Formatting.money(balance)).")
         return true
     }
@@ -247,7 +334,10 @@ final class LedgerStore {
             return nil
         }
         let nextCode = String((categories.compactMap { Int($0.code) }.max() ?? 0) + 1)
-        categories.append(BudgetCategory(code: nextCode, name: trimmed, budget: 0))
+        let nextSortIndex = (categories.map(\.sortIndex).max() ?? -1) + 1
+        context.insert(BudgetCategory(code: nextCode, name: trimmed, budget: 0, sortIndex: nextSortIndex))
+        save()
+        refreshCategories()
         say("Added \u{201C}\(trimmed)\u{201D} — no budget set yet, edit it on Spending.")
         return nextCode
     }
@@ -259,7 +349,9 @@ final class LedgerStore {
             say("\(trimmed) is already on the list.")
             return nil
         }
-        payers.append(trimmed)
+        context.insert(Payer(name: trimmed))
+        save()
+        refreshPayers()
         say("Added \(trimmed). Their expenses will queue as reimbursements.")
         return trimmed
     }
@@ -268,8 +360,11 @@ final class LedgerStore {
 
     func deleteLedgerEntry(_ id: UUID) {
         guard let entry = ledger.first(where: { $0.id == id }) else { return }
-        ledger.removeAll { $0.id == id }
-        say("Deleted — \(entry.desc).  Balance \(Formatting.money(balance)).")
+        let desc = entry.desc
+        context.delete(entry)
+        save()
+        refreshLedger()
+        say("Deleted — \(desc).  Balance \(Formatting.money(balance)).")
     }
 
     // MARK: - Ledger row editing
@@ -278,51 +373,60 @@ final class LedgerStore {
     /// direction and levy tag (if any) — only description, amount, date, and
     /// the category/income-source tag are editable.
     func updateLedgerEntry(id: UUID, date: Date, desc: String, amount: Double, categoryCode: String?, incomeSource: IncomeSource?) {
-        guard let i = ledger.firstIndex(where: { $0.id == id }) else { return }
+        guard let entry = ledger.first(where: { $0.id == id }) else { return }
         let trimmedDesc = desc.trimmingCharacters(in: .whitespacesAndNewlines)
-        ledger[i].date = date
-        ledger[i].desc = trimmedDesc.isEmpty ? ledger[i].desc : trimmedDesc
-        if ledger[i].withdrawal != nil {
-            ledger[i].withdrawal = amount
-            ledger[i].categoryCode = categoryCode
+        entry.date = date
+        entry.desc = trimmedDesc.isEmpty ? entry.desc : trimmedDesc
+        if entry.withdrawal != nil {
+            entry.withdrawal = amount
+            entry.categoryCode = categoryCode
         } else {
-            ledger[i].deposit = amount
-            ledger[i].incomeSource = incomeSource
+            entry.deposit = amount
+            entry.incomeSource = incomeSource
         }
-        say("Updated — \(ledger[i].desc). Balance \(Formatting.money(balance)).")
+        save()
+        refreshLedger()
+        say("Updated — \(entry.desc). Balance \(Formatting.money(balance)).")
     }
 
     // MARK: - Levy instalment toggle
 
     func toggleInstalment(playerID: UUID, index: Int) {
-        guard let pi = roster.firstIndex(where: { $0.id == playerID }) else { return }
-        let wasPaid = roster[pi].instalmentsPaid[index]
+        guard let player = roster.first(where: { $0.id == playerID }) else { return }
+        let wasPaid = player.instalmentsPaid[index]
         let tag = "lv-\(playerID.uuidString)-\(index)"
-        if let existing = ledger.firstIndex(where: { $0.levyTag == tag }) {
-            ledger.remove(at: existing)
+        if let existing = ledger.first(where: { $0.levyTag == tag }) {
+            context.delete(existing)
         } else {
-            let desc = (wasPaid ? "Levy reversal — " : "Player levy — ") + roster[pi].name + ", instalment #\(index + 1)"
-            ledger.append(LedgerEntry(date: todayDate, desc: desc, deposit: wasPaid ? -1000 : 1000, incomeSource: .levy, levyTag: tag))
+            let desc = (wasPaid ? "Levy reversal — " : "Player levy — ") + player.name + ", instalment #\(index + 1)"
+            context.insert(LedgerEntry(date: todayDate, desc: desc, deposit: wasPaid ? -1000 : 1000, incomeSource: .levy, levyTag: tag, sequence: nextSequence()))
         }
-        roster[pi].instalmentsPaid[index].toggle()
+        player.instalmentsPaid[index].toggle()
+        save()
+        refreshLedger()
+        refreshRoster()
         let verb = wasPaid ? "Reversed" : "Recorded"
-        say("\(verb) $1,000 — \(roster[pi].name), instalment #\(index + 1). Balance \(Formatting.money(balance)).")
+        say("\(verb) $1,000 — \(player.name), instalment #\(index + 1). Balance \(Formatting.money(balance)).")
     }
 
     // MARK: - Reimbursement flow
 
     func actOnReimbursement(_ id: UUID) {
-        guard let i = reimbursements.firstIndex(where: { $0.id == id }) else { return }
-        switch reimbursements[i].status {
+        guard let r = reimbursements.first(where: { $0.id == id }) else { return }
+        switch r.status {
         case .pending:
-            reimbursements[i].status = .approved
-            reimbursements[i].statusNote = "Approved — ready to pay"
-            say("Approved. \(Formatting.money(reimbursements[i].amount)) held against the balance.")
+            r.status = .approved
+            r.statusNote = "Approved — ready to pay"
+            save()
+            refreshReimbursements()
+            say("Approved. \(Formatting.money(r.amount)) held against the balance.")
         case .approved:
-            let r = reimbursements[i]
-            reimbursements[i].status = .paid
-            reimbursements[i].statusNote = "Paid by e-transfer, \(Formatting.shortDate(todayDate))"
-            ledger.append(LedgerEntry(date: todayDate, desc: "Reimbursement — \(r.who), \(r.desc)", withdrawal: r.amount, categoryCode: r.categoryCode))
+            r.status = .paid
+            r.statusNote = "Paid by e-transfer, \(Formatting.shortDate(todayDate))"
+            context.insert(LedgerEntry(date: todayDate, desc: "Reimbursement — \(r.who), \(r.desc)", withdrawal: r.amount, categoryCode: r.categoryCode, sequence: nextSequence()))
+            save()
+            refreshReimbursements()
+            refreshLedger()
             say("Paid \(Formatting.money(r.amount)) to \(r.who). Balance \(Formatting.money(balance)).")
         case .paid:
             break
@@ -333,27 +437,37 @@ final class LedgerStore {
 
     func addPlayer() -> UUID {
         let p = Player(jerseyNumber: 0, name: "New player", position: .forward)
-        roster.append(p)
+        context.insert(p)
+        save()
+        refreshRoster()
         say("Player added — set the name and number, then record levies on the Levies tab.")
         return p.id
     }
 
     func removePlayer(_ id: UUID) {
-        guard let name = roster.first(where: { $0.id == id })?.name else { return }
-        roster.removeAll { $0.id == id }
+        guard let player = roster.first(where: { $0.id == id }) else { return }
+        let name = player.name
+        context.delete(player)
+        save()
+        refreshRoster()
         say("\(name) removed from the roster.")
     }
 
     func addStaff() -> UUID {
         let s = StaffMember(name: "New staff member", role: .assistantCoach)
-        staff.append(s)
+        context.insert(s)
+        save()
+        refreshStaff()
         say("Staff member added — set the name and role.")
         return s.id
     }
 
     func removeStaff(_ id: UUID) {
-        guard let name = staff.first(where: { $0.id == id })?.name else { return }
-        staff.removeAll { $0.id == id }
+        guard let member = staff.first(where: { $0.id == id }) else { return }
+        let name = member.name
+        context.delete(member)
+        save()
+        refreshStaff()
         say("\(name) removed from the bench staff.")
     }
 
@@ -495,11 +609,13 @@ final class LedgerStore {
         guard !selected.isEmpty else { say("Nothing ticked to import."); return }
         for r in selected {
             if r.deposit > 0 {
-                ledger.append(LedgerEntry(date: r.date, desc: r.desc, deposit: r.deposit, incomeSource: .otherIncome))
+                context.insert(LedgerEntry(date: r.date, desc: r.desc, deposit: r.deposit, incomeSource: .otherIncome, sequence: nextSequence()))
             } else {
-                ledger.append(LedgerEntry(date: r.date, desc: r.desc, withdrawal: r.withdrawal, categoryCode: r.categoryCode))
+                context.insert(LedgerEntry(date: r.date, desc: r.desc, withdrawal: r.withdrawal, categoryCode: r.categoryCode, sequence: nextSequence()))
             }
         }
+        save()
+        refreshLedger()
         let count = selected.count
         importedRows = []
         importFileName = ""
