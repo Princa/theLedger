@@ -7,6 +7,8 @@ private enum EditTarget: Hashable {
 
 struct TeamSettingsView: View {
     @Environment(LedgerStore.self) private var store
+    @Environment(Navigator.self) private var nav
+    @Environment(CloudSyncService.self) private var cloudSync
     @State private var editing: EditTarget?
 
     private struct SettingsRow: Identifiable {
@@ -56,6 +58,23 @@ struct TeamSettingsView: View {
                     .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
                 }
             }
+
+            Button(action: { nav.push(.cloudSync) }) {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Share this team").font(Theme.serif(15)).foregroundStyle(Theme.ink)
+                        Text(cloudSync.isLinked ? "Synced with other devices" : "Not shared yet")
+                            .font(Theme.serif(12)).foregroundStyle(Theme.muted)
+                    }
+                    Spacer()
+                    Text("›").font(Theme.serif(17)).foregroundStyle(Theme.accent)
+                }
+                .padding(.vertical, 13)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
 
             HStack(alignment: .firstTextBaseline) {
                 Kicker(text: "Bench staff — \(store.staff.count)")

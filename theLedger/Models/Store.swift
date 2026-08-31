@@ -136,6 +136,102 @@ final class LedgerStore {
         save()
     }
 
+    // MARK: - Cloud sync snapshot (see CloudSyncService)
+
+    func exportSnapshot() -> TeamSnapshot {
+        TeamSnapshot(
+            team: TeamSnapshot.TeamDTO(
+                name: team.name, shortLabel: team.shortLabel, division: team.division,
+                founded: team.founded, season: team.season, bankMask: team.bankMask,
+                signingAuthority: team.signingAuthority, levySchedule: team.levySchedule,
+                visibleTo: team.visibleTo, seasonStart: team.seasonStart, seasonEnd: team.seasonEnd,
+                joinCode: team.joinCode
+            ),
+            players: roster.map {
+                TeamSnapshot.PlayerDTO(jerseyNumber: $0.jerseyNumber, name: $0.name, position: $0.position, instalmentsPaid: $0.instalmentsPaid)
+            },
+            staff: staff.map { TeamSnapshot.StaffDTO(name: $0.name, role: $0.role) },
+            categories: categories.map {
+                TeamSnapshot.CategoryDTO(code: $0.code, name: $0.name, budget: $0.budget, sortIndex: $0.sortIndex)
+            },
+            ledger: ledger.map {
+                TeamSnapshot.LedgerDTO(date: $0.date, desc: $0.desc, withdrawal: $0.withdrawal, deposit: $0.deposit, categoryCode: $0.categoryCode, incomeSource: $0.incomeSource, levyTag: $0.levyTag, sequence: $0.sequence)
+            },
+            reimbursements: reimbursements.map {
+                TeamSnapshot.ReimbursementDTO(who: $0.who, desc: $0.desc, amount: $0.amount, categoryCode: $0.categoryCode, status: $0.status, statusNote: $0.statusNote)
+            },
+            sponsors: sponsors.map {
+                TeamSnapshot.SponsorDTO(name: $0.name, meta: $0.meta, amount: $0.amount, status: $0.status)
+            },
+            payers: payers.filter { $0 != "Team account" }
+        )
+    }
+
+    /// Replaces every locally-stored record with what's in `snapshot`. Used
+    /// after joining a team by code, or pulling a newer copy from the cloud
+    /// — local-only data not yet pushed is discarded, so callers should warn
+    /// before calling this.
+    func importSnapshot(_ snapshot: TeamSnapshot) {
+        guard let modelContext else { return }
+
+        for p in fetchAll(Player.self) { modelContext.delete(p) }
+        for s in fetchAll(StaffMember.self) { modelContext.delete(s) }
+        for c in fetchAll(BudgetCategory.self) { modelContext.delete(c) }
+        for e in fetchAll(LedgerEntry.self) { modelContext.delete(e) }
+        for r in fetchAll(Reimbursement.self) { modelContext.delete(r) }
+        for sp in fetchAll(Sponsor.self) { modelContext.delete(sp) }
+        for p in fetchAll(Payer.self) { modelContext.delete(p) }
+        for t in fetchAll(Team.self) { modelContext.delete(t) }
+
+        let newTeam = Team()
+        newTeam.name = snapshot.team.name
+        newTeam.shortLabel = snapshot.team.shortLabel
+        newTeam.division = snapshot.team.division
+        newTeam.founded = snapshot.team.founded
+        newTeam.season = snapshot.team.season
+        newTeam.bankMask = snapshot.team.bankMask
+        newTeam.signingAuthority = snapshot.team.signingAuthority
+        newTeam.levySchedule = snapshot.team.levySchedule
+        newTeam.visibleTo = snapshot.team.visibleTo
+        newTeam.seasonStart = snapshot.team.seasonStart
+        newTeam.seasonEnd = snapshot.team.seasonEnd
+        newTeam.joinCode = snapshot.team.joinCode
+        modelContext.insert(newTeam)
+        team = newTeam
+
+        for p in snapshot.players {
+            modelContext.insert(Player(jerseyNumber: p.jerseyNumber, name: p.name, position: p.position, instalmentsPaid: p.instalmentsPaid))
+        }
+        for s in snapshot.staff {
+            modelContext.insert(StaffMember(name: s.name, role: s.role))
+        }
+        for c in snapshot.categories {
+            modelContext.insert(BudgetCategory(code: c.code, name: c.name, budget: c.budget, sortIndex: c.sortIndex))
+        }
+        for e in snapshot.ledger {
+            modelContext.insert(LedgerEntry(date: e.date, desc: e.desc, withdrawal: e.withdrawal, deposit: e.deposit, categoryCode: e.categoryCode, incomeSource: e.incomeSource, levyTag: e.levyTag, sequence: e.sequence))
+        }
+        for r in snapshot.reimbursements {
+            modelContext.insert(Reimbursement(who: r.who, desc: r.desc, amount: r.amount, categoryCode: r.categoryCode, status: r.status, statusNote: r.statusNote))
+        }
+        for sp in snapshot.sponsors {
+            modelContext.insert(Sponsor(name: sp.name, meta: sp.meta, amount: sp.amount, status: sp.status))
+        }
+        for name in snapshot.payers where name != "Team account" {
+            modelContext.insert(Payer(name: name))
+        }
+
+        save()
+        refreshRoster()
+        refreshStaff()
+        refreshCategories()
+        refreshLedger()
+        ledgerSequenceCounter = (ledger.map(\.sequence).max() ?? -1) + 1
+        refreshReimbursements()
+        refreshSponsors()
+        refreshPayers()
+    }
+
     // MARK: - Core state
     //
     // Populated by attach(_:) / the refresh*() helpers above — these are

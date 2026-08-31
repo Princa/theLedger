@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0B6070D775478D5D11589757 /* RefundsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA83B811B2EB8A4EB2C7FE3 /* RefundsView.swift */; };
+		0BE6967049C70D6D0375A7C1 /* CloudSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D127FCFE620D51D5577E4A2B /* CloudSyncView.swift */; };
 		10EA9A1CDCC02771389512E4 /* TeamSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9489F6888668044985488085 /* TeamSettingsView.swift */; };
 		15D7E93D5A5A65B4B9158B4D /* ScreenScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA602CEFA52D5114FD9D8BE9 /* ScreenScroll.swift */; };
 		1A9A2E757B039F6D0C1D1D70 /* theLedgerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E9C69A974FFF86FB064C57 /* theLedgerApp.swift */; };
@@ -16,6 +17,7 @@
 		21774C702BF93AB59D74F91D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 104C8956AAE875E99972E385 /* Assets.xcassets */; };
 		2A9AABB8A092466592626D44 /* Rows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4C5EBA40BBB66C9FB5A281 /* Rows.swift */; };
 		3051F28C8D1301BA0CF3744A /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF50B70DAB269D3596DF7D9 /* Store.swift */; };
+		3F51F73F297160E504A26D37 /* CloudSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB13DDE49C18BE8D303EE206 /* CloudSyncService.swift */; };
 		401447945CF712C302BB9F18 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F5C4CA2E42607A2C4A5FA5 /* RootTabView.swift */; };
 		42B451E2D904EBEB2870D783 /* LogExpenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BB520B30DD96E5FCB588D1 /* LogExpenseView.swift */; };
 		643B1F53EDAD7271367D2ADD /* EditTransactionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB022D7A7B376FD0461196BF /* EditTransactionSheet.swift */; };
@@ -33,6 +35,7 @@
 		DA3F64F6108D811B19EDB4BA /* MoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE0F7BD2BC644151F8DC71EA /* MoreView.swift */; };
 		EA5D343E0124298B198DCE93 /* LevyTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB4EBEA19B0A4C0A3B5AFBE /* LevyTrackerView.swift */; };
 		EF6111C9AAC93624293E390D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 986F84D34779768BE3E60433 /* Theme.swift */; };
+		F508263909AD0599DE8A7647 /* TeamSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A601CC6784BADF02FBC286 /* TeamSnapshot.swift */; };
 		F959D710C85C79D375AA1EE1 /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71F7C502551A805EEA9A00B3 /* ProgressBar.swift */; };
 		FD817B42DB74566A75F51A8C /* TreasurersReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D69A33E9FA58B67435E483D /* TreasurersReportView.swift */; };
 /* End PBXBuildFile section */
@@ -50,6 +53,7 @@
 		71F7C502551A805EEA9A00B3 /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
 		74A99444E3CBDBF125E430D3 /* theLedger.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = theLedger.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		804CF8778E74D633CFC9D0BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		85A601CC6784BADF02FBC286 /* TeamSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamSnapshot.swift; sourceTree = "<group>"; };
 		85BB520B30DD96E5FCB588D1 /* LogExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogExpenseView.swift; sourceTree = "<group>"; };
 		8F4C5EBA40BBB66C9FB5A281 /* Rows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rows.swift; sourceTree = "<group>"; };
 		9489F6888668044985488085 /* TeamSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamSettingsView.swift; sourceTree = "<group>"; };
@@ -58,9 +62,11 @@
 		A02DCFD25E92D14F05C6C6E2 /* MoneyInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyInView.swift; sourceTree = "<group>"; };
 		A126C38C0368ECF759458738 /* CategoryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryDetailView.swift; sourceTree = "<group>"; };
 		BB022D7A7B376FD0461196BF /* EditTransactionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTransactionSheet.swift; sourceTree = "<group>"; };
+		BB13DDE49C18BE8D303EE206 /* CloudSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncService.swift; sourceTree = "<group>"; };
 		BF920804DBF7D5BC41BE4E2C /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		C4D9B38E6CE29ED259CA4CFC /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		CA602CEFA52D5114FD9D8BE9 /* ScreenScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenScroll.swift; sourceTree = "<group>"; };
+		D127FCFE620D51D5577E4A2B /* CloudSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncView.swift; sourceTree = "<group>"; };
 		D6E9C69A974FFF86FB064C57 /* theLedgerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = theLedgerApp.swift; sourceTree = "<group>"; };
 		D7DE1F4B769D549B5935EB0B /* NavHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavHeader.swift; sourceTree = "<group>"; };
 		DAF07ABE7A24D78D16EFD9B9 /* TabIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabIcons.swift; sourceTree = "<group>"; };
@@ -68,6 +74,7 @@
 		E8C5CFD612D617D3E8D3992A /* StatementImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementImportView.swift; sourceTree = "<group>"; };
 		FA9B4DD09D7946C63101F42B /* ReimbursementQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReimbursementQueueView.swift; sourceTree = "<group>"; };
 		FE0F7BD2BC644151F8DC71EA /* MoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreView.swift; sourceTree = "<group>"; };
+		FE5942ADCB215DD4A692EDD4 /* theLedger.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = theLedger.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -76,6 +83,7 @@
 			children = (
 				370EF382D0B44B4174F9079A /* BankLedgerView.swift */,
 				A126C38C0368ECF759458738 /* CategoryDetailView.swift */,
+				D127FCFE620D51D5577E4A2B /* CloudSyncView.swift */,
 				C4D9B38E6CE29ED259CA4CFC /* DashboardView.swift */,
 				DFB4EBEA19B0A4C0A3B5AFBE /* LevyTrackerView.swift */,
 				85BB520B30DD96E5FCB588D1 /* LogExpenseView.swift */,
@@ -114,6 +122,7 @@
 				804CF8778E74D633CFC9D0BB /* Info.plist */,
 				4F09B237DDADDDD6D0DCBB7E /* Navigator.swift */,
 				44F5C4CA2E42607A2C4A5FA5 /* RootTabView.swift */,
+				FE5942ADCB215DD4A692EDD4 /* theLedger.entitlements */,
 				D6E9C69A974FFF86FB064C57 /* theLedgerApp.swift */,
 				E7B67FBADDFDB703EC617608 /* Components */,
 				C5C7DDFA183C68FD556D37BD /* Models */,
@@ -135,8 +144,10 @@
 		C5C7DDFA183C68FD556D37BD /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				BB13DDE49C18BE8D303EE206 /* CloudSyncService.swift */,
 				BF920804DBF7D5BC41BE4E2C /* Models.swift */,
 				2FF50B70DAB269D3596DF7D9 /* Store.swift */,
+				85A601CC6784BADF02FBC286 /* TeamSnapshot.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -229,6 +240,8 @@
 				BAB8F9A16D4A913A369188FA /* BankLedgerView.swift in Sources */,
 				BAA37709D3D26E2022B2A8C5 /* CategoryDetailView.swift in Sources */,
 				AA8E3DE509CA5CE85C4E5130 /* Chip.swift in Sources */,
+				3F51F73F297160E504A26D37 /* CloudSyncService.swift in Sources */,
+				0BE6967049C70D6D0375A7C1 /* CloudSyncView.swift in Sources */,
 				D2A693E96999CAC082FE2A5F /* DashboardView.swift in Sources */,
 				643B1F53EDAD7271367D2ADD /* EditTransactionSheet.swift in Sources */,
 				7320E17E78B34850537A3A3B /* Formatting.swift in Sources */,
@@ -250,6 +263,7 @@
 				3051F28C8D1301BA0CF3744A /* Store.swift in Sources */,
 				1FB0DE8787384F80D6C89065 /* TabIcons.swift in Sources */,
 				10EA9A1CDCC02771389512E4 /* TeamSettingsView.swift in Sources */,
+				F508263909AD0599DE8A7647 /* TeamSnapshot.swift in Sources */,
 				EF6111C9AAC93624293E390D /* Theme.swift in Sources */,
 				FD817B42DB74566A75F51A8C /* TreasurersReportView.swift in Sources */,
 				1A9A2E757B039F6D0C1D1D70 /* theLedgerApp.swift in Sources */,
@@ -263,6 +277,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = theLedger/theLedger.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2Y7JY873N6;
@@ -402,6 +417,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = theLedger/theLedger.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 2Y7JY873N6;

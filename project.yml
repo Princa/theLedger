@@ -33,3 +33,4 @@ targets:
         # this same Apple ID, so RinkLedger can build to a real device too.
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: 2Y7JY873N6
+        CODE_SIGN_ENTITLEMENTS: theLedger/theLedger.entitlements
