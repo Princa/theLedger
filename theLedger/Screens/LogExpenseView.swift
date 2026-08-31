@@ -22,7 +22,7 @@ struct LogExpenseView: View {
     private var amount: Double { Double(amountText) ?? 0 }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             HStack(spacing: 6) {
                 DarkChip(label: "Money out", isSelected: kind == .expense) { kind = .expense }
                 DarkChip(label: "Money in", isSelected: kind == .income) { kind = .income }

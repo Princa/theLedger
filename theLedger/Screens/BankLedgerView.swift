@@ -5,6 +5,7 @@ struct BankLedgerView: View {
     @Environment(LedgerStore.self) private var store
     @Environment(Navigator.self) private var nav
     @State private var showFileImporter = false
+    @State private var editingEntry: LedgerEntry?
 
     private struct RunningRow: Identifiable {
         var id: UUID { entry.id }
@@ -23,60 +24,72 @@ struct BankLedgerView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 8) {
-                Button(action: { showFileImporter = true }) {
-                    Text("Upload statement (CSV)")
-                        .font(Theme.serif(15))
-                        .foregroundStyle(Theme.accent700)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Theme.sharpCorner)
-                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
-                                .foregroundStyle(Theme.ink.opacity(0.35))
-                        )
-                }
-                .buttonStyle(.plain)
-
-                Button("Demo file") {
-                    store.loadDemoStatement()
-                    if !store.importedRows.isEmpty { nav.push(.importReview) }
-                }
-                .font(Theme.serif(14))
-                .foregroundStyle(Theme.ink)
-                .padding(.horizontal, 12)
-                .frame(height: 44)
-                .overlay(RoundedRectangle(cornerRadius: Theme.sharpCorner).strokeBorder(Theme.divider))
-            }
-            .padding(.top, 14)
-
-            Text("Export from the bank as CSV with Date, Description, Withdrawal, Deposit. Rows are matched to expense types and checked against what's already here. Swipe a transaction left to delete it.")
-                .font(Theme.serif(12))
-                .foregroundStyle(Theme.muted)
-                .lineSpacing(3)
-                .padding(.top, 6)
-                .padding(.bottom, 4)
-
-            HStack(spacing: 10) {
-                Text("Item").frame(maxWidth: .infinity, alignment: .leading)
-                Text("Amount").frame(width: 78, alignment: .trailing)
-                Text("Balance").frame(width: 78, alignment: .trailing)
-            }
-            .font(Theme.serif(11))
-            .tracking(1.0)
-            .foregroundStyle(Theme.muted)
-            .padding(.top, 14)
-            .padding(.bottom, 6)
-
-            VStack(spacing: 0) {
-                ForEach(rows) { row in
-                    SwipeToDeleteRow(onDelete: { store.deleteLedgerEntry(row.entry.id) }) {
-                        LedgerRow(entry: row.entry, running: row.running)
+        List {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 8) {
+                    Button(action: { showFileImporter = true }) {
+                        Text("Upload statement (CSV)")
+                            .font(Theme.serif(15))
+                            .foregroundStyle(Theme.accent700)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Theme.sharpCorner)
+                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
+                                    .foregroundStyle(Theme.ink.opacity(0.35))
+                            )
                     }
-                    .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
+                    .buttonStyle(.plain)
+
+                    Button("Demo file") {
+                        store.loadDemoStatement()
+                        if !store.importedRows.isEmpty { nav.push(.importReview) }
+                    }
+                    .font(Theme.serif(14))
+                    .foregroundStyle(Theme.ink)
+                    .padding(.horizontal, 12)
+                    .frame(height: 44)
+                    .overlay(RoundedRectangle(cornerRadius: Theme.sharpCorner).strokeBorder(Theme.divider))
                 }
+                .padding(.top, 14)
+
+                Text("Export from the bank as CSV with Date, Description, Withdrawal, Deposit. Rows are matched to expense types and checked against what's already here. Tap a transaction to edit it, or swipe left to delete it.")
+                    .font(Theme.serif(12))
+                    .foregroundStyle(Theme.muted)
+                    .lineSpacing(3)
+                    .padding(.top, 6)
+                    .padding(.bottom, 4)
+
+                HStack(spacing: 10) {
+                    Text("Item").frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Amount").frame(width: 78, alignment: .trailing)
+                    Text("Balance").frame(width: 78, alignment: .trailing)
+                }
+                .font(Theme.serif(11))
+                .tracking(1.0)
+                .foregroundStyle(Theme.muted)
+                .padding(.top, 14)
+                .padding(.bottom, 6)
             }
+            .bareListRow()
+
+            ForEach(rows) { row in
+                FlatListRow {
+                    LedgerRow(entry: row.entry, running: row.running)
+                }
+                .swipeActions(edge: .trailing) {
+                    Button(role: .destructive) { store.deleteLedgerEntry(row.entry.id) } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                .onTapGesture { editingEntry = row.entry }
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Theme.paper.ignoresSafeArea())
+        .sheet(item: $editingEntry) { entry in
+            EditTransactionSheet(entry: entry)
         }
         .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.commaSeparatedText, .plainText]) { result in
             guard case .success(let url) = result else { return }

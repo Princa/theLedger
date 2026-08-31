@@ -4,6 +4,7 @@ struct CategoryDetailView: View {
     let categoryCode: String
     @Environment(LedgerStore.self) private var store
     @Environment(Navigator.self) private var nav
+    @State private var editingEntry: LedgerEntry?
 
     private var category: BudgetCategory? { store.category(for: categoryCode) }
 
@@ -21,43 +22,52 @@ struct CategoryDetailView: View {
         let over = actual > budget
         let pct = cat.map { store.categoryPct($0) } ?? 0
 
-        VStack(alignment: .leading, spacing: 0) {
-            StatTrio(items: [
-                .init(label: "Actual", value: Formatting.money(actual)),
-                .init(label: "Budget", value: Formatting.money(budget, cents: false)),
-                .init(label: "Left", value: Formatting.money(budget - actual), color: over ? Theme.clubDarkRed : Theme.ink),
-            ], valueSize: 26)
-            .padding(.top, 12)
-            .padding(.bottom, 18)
+        List {
+            VStack(alignment: .leading, spacing: 0) {
+                StatTrio(items: [
+                    .init(label: "Actual", value: Formatting.money(actual)),
+                    .init(label: "Budget", value: Formatting.money(budget, cents: false)),
+                    .init(label: "Left", value: Formatting.money(budget - actual), color: over ? Theme.clubDarkRed : Theme.ink),
+                ], valueSize: 26)
+                .padding(.top, 12)
+                .padding(.bottom, 18)
 
-            ProgressBarView(pct: pct, color: over ? Theme.clubRed : Theme.accent, height: 5)
+                ProgressBarView(pct: pct, color: over ? Theme.clubRed : Theme.accent, height: 5)
 
-            Kicker(text: "Lines")
-                .padding(.top, 28)
-                .padding(.bottom, 6)
+                Kicker(text: "Lines")
+                    .padding(.top, 28)
+                    .padding(.bottom, 6)
+            }
+            .bareListRow()
 
-            VStack(spacing: 0) {
-                ForEach(ledgerLines) { entry in
-                    SwipeToDeleteRow(onDelete: { store.deleteLedgerEntry(entry.id) }) {
-                        HStack(alignment: .firstTextBaseline, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(entry.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
-                                Text("\(Formatting.shortDate(entry.date)) · paid from team account")
-                                    .font(Theme.serif(12)).foregroundStyle(Theme.muted)
-                            }
-                            Spacer()
-                            Text(Formatting.money(entry.withdrawal ?? 0))
-                                .font(Theme.serif(15))
-                                .monospacedDigit()
-                                .foregroundStyle(Theme.ink)
+            ForEach(ledgerLines) { entry in
+                FlatListRow {
+                    HStack(alignment: .firstTextBaseline, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(entry.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
+                            Text("\(Formatting.shortDate(entry.date)) · paid from team account")
+                                .font(Theme.serif(12)).foregroundStyle(Theme.muted)
                         }
-                        .padding(.vertical, 12)
-                        .frame(minHeight: 44)
-                        .contentShape(Rectangle())
+                        Spacer()
+                        Text(Formatting.money(entry.withdrawal ?? 0))
+                            .font(Theme.serif(15))
+                            .monospacedDigit()
+                            .foregroundStyle(Theme.ink)
                     }
-                    .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
+                    .padding(.vertical, 12)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
-                ForEach(reimbLines) { r in
+                .swipeActions(edge: .trailing) {
+                    Button(role: .destructive) { store.deleteLedgerEntry(entry.id) } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                .onTapGesture { editingEntry = entry }
+            }
+
+            ForEach(reimbLines) { r in
+                FlatListRow {
                     HStack(alignment: .firstTextBaseline, spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(r.desc).font(Theme.serif(15)).foregroundStyle(Theme.ink)
@@ -72,7 +82,6 @@ struct CategoryDetailView: View {
                     }
                     .padding(.vertical, 12)
                     .frame(minHeight: 44)
-                    .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
                 }
             }
 
@@ -81,6 +90,13 @@ struct CategoryDetailView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .padding(.top, 24)
+            .bareListRow()
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Theme.paper.ignoresSafeArea())
+        .sheet(item: $editingEntry) { entry in
+            EditTransactionSheet(entry: entry)
         }
     }
 }

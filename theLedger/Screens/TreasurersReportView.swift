@@ -23,7 +23,7 @@ struct TreasurersReportView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             Kicker(text: "Statement of position")
                 .padding(.top, 14)
 

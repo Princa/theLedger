@@ -13,7 +13,7 @@ struct DashboardView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             // Cash on hand
             VStack(alignment: .leading, spacing: 8) {
                 Kicker(text: "Cash on hand")

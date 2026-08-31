@@ -19,14 +19,8 @@ struct RootTabView: View {
             )
 
             ZStack(alignment: .leading) {
-                ScrollView {
-                    content
-                        .padding(.horizontal, Theme.screenPadding)
-                        .padding(.top, 6)
-                        .padding(.bottom, 40)
-                }
-                .scrollDismissesKeyboard(.interactively)
-                .offset(x: edgeDragOffset)
+                content
+                    .offset(x: edgeDragOffset)
 
                 if nav.sub != nil {
                     Color.clear

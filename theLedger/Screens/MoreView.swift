@@ -24,25 +24,27 @@ struct MoreView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            ForEach(rows, id: \.label) { row in
-                Button(action: { nav.push(row.route) }) {
-                    HStack(alignment: .firstTextBaseline, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(row.label).font(Theme.serif(17)).foregroundStyle(Theme.ink)
-                            Text(row.meta).font(Theme.serif(13)).foregroundStyle(Theme.muted)
+        PlainScrollScreen {
+            VStack(spacing: 0) {
+                ForEach(rows, id: \.label) { row in
+                    Button(action: { nav.push(row.route) }) {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(row.label).font(Theme.serif(17)).foregroundStyle(Theme.ink)
+                                Text(row.meta).font(Theme.serif(13)).foregroundStyle(Theme.muted)
+                            }
+                            Spacer()
+                            Text(row.right).font(Theme.serif(15)).monospacedDigit().foregroundStyle(Theme.accent)
                         }
-                        Spacer()
-                        Text(row.right).font(Theme.serif(15)).monospacedDigit().foregroundStyle(Theme.accent)
+                        .padding(.vertical, 16)
+                        .frame(minHeight: 56)
+                        .contentShape(Rectangle())
                     }
-                    .padding(.vertical, 16)
-                    .frame(minHeight: 56)
-                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
                 }
-                .buttonStyle(.plain)
-                .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
             }
+            .padding(.top, 10)
         }
-        .padding(.top, 10)
     }
 }

@@ -6,7 +6,7 @@ struct RefundsView: View {
     private var surplus: Double { store.projectedSurplus }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             VStack(alignment: .leading, spacing: 6) {
                 Kicker(text: "Projected per player")
                 Text(Formatting.money(store.perPlayerRefund))

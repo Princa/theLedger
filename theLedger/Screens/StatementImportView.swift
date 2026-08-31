@@ -5,7 +5,7 @@ struct StatementImportView: View {
     @Environment(Navigator.self) private var nav
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             HStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Selected").font(Theme.serif(12)).foregroundStyle(Theme.muted)

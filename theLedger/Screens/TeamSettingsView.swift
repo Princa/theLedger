@@ -27,7 +27,7 @@ struct TeamSettingsView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             HStack(spacing: 14) {
                 Image("RangersCrest")
                     .resizable()

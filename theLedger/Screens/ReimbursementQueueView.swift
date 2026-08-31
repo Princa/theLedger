@@ -4,7 +4,7 @@ struct ReimbursementQueueView: View {
     @Environment(LedgerStore.self) private var store
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Owed to parents and staff").font(Theme.serif(12)).foregroundStyle(Theme.muted)
                 Text(Formatting.money(store.pendingReimbursementTotal)).font(Theme.heroReimbTotal).monospacedDigit().foregroundStyle(Theme.ink)

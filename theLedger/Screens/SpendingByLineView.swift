@@ -5,7 +5,7 @@ struct SpendingByLineView: View {
     @Environment(Navigator.self) private var nav
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             StatTrio(items: [
                 .init(label: "Spent YTD", value: Formatting.money(store.categoryActualTotal, cents: false)),
                 .init(label: "Budget", value: Formatting.money(store.budgetTotal, cents: false)),

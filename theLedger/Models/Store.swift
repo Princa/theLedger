@@ -268,6 +268,26 @@ final class LedgerStore {
         say("Deleted — \(entry.desc).  Balance \(Formatting.money(balance)).")
     }
 
+    // MARK: - Ledger row editing
+
+    /// Edits an existing entry in place. Keeps its original deposit/withdrawal
+    /// direction and levy tag (if any) — only description, amount, date, and
+    /// the category/income-source tag are editable.
+    func updateLedgerEntry(id: UUID, date: Date, desc: String, amount: Double, categoryCode: String?, incomeSource: IncomeSource?) {
+        guard let i = ledger.firstIndex(where: { $0.id == id }) else { return }
+        let trimmedDesc = desc.trimmingCharacters(in: .whitespacesAndNewlines)
+        ledger[i].date = date
+        ledger[i].desc = trimmedDesc.isEmpty ? ledger[i].desc : trimmedDesc
+        if ledger[i].withdrawal != nil {
+            ledger[i].withdrawal = amount
+            ledger[i].categoryCode = categoryCode
+        } else {
+            ledger[i].deposit = amount
+            ledger[i].incomeSource = incomeSource
+        }
+        say("Updated — \(ledger[i].desc). Balance \(Formatting.money(balance)).")
+    }
+
     // MARK: - Levy instalment toggle
 
     func toggleInstalment(playerID: UUID, index: Int) {
@@ -297,7 +317,7 @@ final class LedgerStore {
         case .approved:
             let r = reimbursements[i]
             reimbursements[i].status = .paid
-            reimbursements[i].statusNote = "Paid by e-transfer, Dec 16"
+            reimbursements[i].statusNote = "Paid by e-transfer, \(Formatting.shortDate(todayDate))"
             ledger.append(LedgerEntry(date: todayDate, desc: "Reimbursement — \(r.who), \(r.desc)", withdrawal: r.amount, categoryCode: r.categoryCode))
             say("Paid \(Formatting.money(r.amount)) to \(r.who). Balance \(Formatting.money(balance)).")
         case .paid:

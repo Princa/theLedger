@@ -6,7 +6,7 @@ struct LevyTrackerView: View {
     private let dueLabels = ["Jun 10", "Sep 1", "Oct 1", "Nov 1"]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        PlainScrollScreen {
             HStack(alignment: .top, spacing: 26) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Collected").font(Theme.serif(12)).foregroundStyle(Theme.muted)
