@@ -158,11 +158,15 @@ final class LedgerStore {
 
     var unpaidInstalment3Count: Int { roster.filter { !$0.instalmentsPaid[2] }.count }
 
-    var budgetTotal: Double { categories.reduce(0) { $0 + $1.budget } }
+    /// The overall spending envelope is automatic, not manually set: it's
+    /// everything the team expects to bring in this season — levies,
+    /// sponsorship, and fundraising — not a sum of individually-edited
+    /// per-line budgets (there's no UI for those yet).
+    var budgetTotal: Double { levyTarget + sponsorshipSeasonTarget + fundraisingIncome }
     var categoryActualTotal: Double { categories.reduce(0) { $0 + actualSpend(for: $1.code) } }
     var budgetRemaining: Double { budgetTotal - categoryActualTotal }
 
-    var projectedRevenue: Double { levyTarget + sponsorshipSeasonTarget + fundraisingIncome }
+    var projectedRevenue: Double { budgetTotal }
     var projectedExpense: Double {
         categories.reduce(0) { $0 + max($1.budget, actualSpend(for: $1.code)) } + pendingReimbursementTotal
     }
