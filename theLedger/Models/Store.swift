@@ -145,7 +145,7 @@ final class LedgerStore {
                 founded: team.founded, season: team.season, bankMask: team.bankMask,
                 signingAuthority: team.signingAuthority, levySchedule: team.levySchedule,
                 visibleTo: team.visibleTo, seasonStart: team.seasonStart, seasonEnd: team.seasonEnd,
-                joinCode: team.joinCode
+                joinCode: team.joinCode, sheetsURL: team.sheetsURL
             ),
             players: roster.map {
                 TeamSnapshot.PlayerDTO(jerseyNumber: $0.jerseyNumber, name: $0.name, position: $0.position, instalmentsPaid: $0.instalmentsPaid)
@@ -196,6 +196,7 @@ final class LedgerStore {
         newTeam.seasonStart = snapshot.team.seasonStart
         newTeam.seasonEnd = snapshot.team.seasonEnd
         newTeam.joinCode = snapshot.team.joinCode
+        newTeam.sheetsURL = snapshot.team.sheetsURL ?? ""
         modelContext.insert(newTeam)
         team = newTeam
 
@@ -575,6 +576,48 @@ final class LedgerStore {
 
     func exportWorkbook() {
         say("Workbook exported — 5 sheets, \(ledger.count) transactions.")
+    }
+
+    // MARK: - Google Sheets reference copy
+    //
+    // The app doesn't write to the sheet — this is just a pointer to a copy
+    // the treasurer keeps in Drive, so the report can open it side by side.
+
+    /// The stored link, ready to hand to `openURL`. nil when none is set.
+    var sheetsLink: URL? { LedgerStore.normalizedLink(team.sheetsURL) }
+
+    /// Stores what was pasted, normalized. Empty input clears the link.
+    @discardableResult
+    func setSheetsURL(_ raw: String) -> Bool {
+        if raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            team.sheetsURL = ""
+            save()
+            say("Sheets link removed.")
+            return true
+        }
+        guard let link = LedgerStore.normalizedLink(raw) else {
+            say("That doesn't look like a web address — paste the sheet's link.")
+            return false
+        }
+        team.sheetsURL = link.absoluteString
+        save()
+        say("Sheets link saved.")
+        return true
+    }
+
+    /// Adds the scheme a pasted address usually lacks, and keeps only http(s)
+    /// — so a `javascript:` or `file:` string is rejected at the point it's
+    /// typed rather than stored and silently failing to open later.
+    static func normalizedLink(_ raw: String) -> URL? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let withScheme = trimmed.contains("://") ? trimmed : "https://" + trimmed
+        guard let url = URL(string: withScheme),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              let host = url.host(), !host.isEmpty
+        else { return nil }
+        return url
     }
 
     // MARK: - CSV statement import

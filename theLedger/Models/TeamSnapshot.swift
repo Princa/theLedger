@@ -19,6 +19,9 @@ struct TeamSnapshot: Codable {
         var seasonStart: Date
         var seasonEnd: Date
         var joinCode: String
+        /// Optional on the wire so snapshots written before this field
+        /// existed still decode — a missing key means "no link set".
+        var sheetsURL: String?
     }
     struct PlayerDTO: Codable {
         var jerseyNumber: Int

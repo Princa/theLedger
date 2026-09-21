@@ -76,6 +76,9 @@ struct TeamSettingsView: View {
             .buttonStyle(.plain)
             .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
 
+            SheetsLinkRow()
+                .overlay(alignment: .top) { Rectangle().fill(Theme.divider).frame(height: 1) }
+
             HStack(alignment: .firstTextBaseline) {
                 Kicker(text: "Bench staff — \(store.staff.count)")
                 Spacer()
@@ -124,6 +127,98 @@ struct TeamSettingsView: View {
                 }
             }
         }
+    }
+}
+
+/// Holds the address of a Google Sheets copy of the books. The app never
+/// reads or writes the sheet — the link is a pointer the treasurer keeps
+/// current, opened from the Treasurer's report.
+private struct SheetsLinkRow: View {
+    @Environment(LedgerStore.self) private var store
+    @State private var isEditing = false
+    @State private var draft = ""
+
+    private var meta: String {
+        store.sheetsLink?.host() ?? "Not set — paste a link to a sheet"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button(action: toggle) {
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Google Sheets copy").font(Theme.serif(15)).foregroundStyle(Theme.ink)
+                        Text(meta).font(Theme.serif(12)).foregroundStyle(Theme.muted).lineLimit(1)
+                    }
+                    Spacer()
+                    Text(isEditing ? "Close" : "Edit").font(Theme.serif(14)).foregroundStyle(Theme.accent)
+                }
+                .padding(.vertical, 13)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isEditing {
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField("docs.google.com/spreadsheets/…", text: $draft)
+                        .font(Theme.serif(14))
+                        .foregroundStyle(Theme.ink)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .submitLabel(.done)
+                        .onSubmit { saveDraft() }
+                        .padding(.horizontal, 10)
+                        .frame(height: 40)
+                        .background(Theme.surface)
+                        .overlay(RoundedRectangle(cornerRadius: Theme.sharpCorner).strokeBorder(Theme.divider))
+
+                    Text("Open the sheet in a browser and paste its address. Anyone opening it from the report needs their own access to the sheet.")
+                        .font(Theme.serif(12))
+                        .foregroundStyle(Theme.muted)
+                        .lineSpacing(3)
+
+                    HStack(spacing: 8) {
+                        Button("Save") { saveDraft() }
+                            .font(Theme.serif(14))
+                            .foregroundStyle(Theme.accent700)
+                            .padding(.horizontal, 12)
+                            .frame(height: 34)
+                            .overlay(RoundedRectangle(cornerRadius: Theme.sharpCorner).strokeBorder(Theme.accent700))
+
+                        if !store.team.sheetsURL.isEmpty {
+                            Button("Remove") { removeLink() }
+                                .font(Theme.serif(14))
+                                .foregroundStyle(Theme.clubDarkRed)
+                                .padding(.horizontal, 12)
+                                .frame(height: 34)
+                                .overlay(RoundedRectangle(cornerRadius: Theme.sharpCorner).strokeBorder(Theme.clubDarkRed))
+                        }
+                    }
+                }
+                .padding(.bottom, 14)
+            }
+        }
+    }
+
+    private func toggle() {
+        if !isEditing { draft = store.team.sheetsURL }
+        isEditing.toggle()
+    }
+
+    /// Stays open on a rejected address so the bad paste is still there to fix.
+    private func saveDraft() {
+        if store.setSheetsURL(draft) {
+            draft = store.team.sheetsURL
+            isEditing = false
+        }
+    }
+
+    private func removeLink() {
+        store.setSheetsURL("")
+        draft = ""
+        isEditing = false
     }
 }
 

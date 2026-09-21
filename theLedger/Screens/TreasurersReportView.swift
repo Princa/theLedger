@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TreasurersReportView: View {
     @Environment(LedgerStore.self) private var store
+    @Environment(Navigator.self) private var nav
+    @Environment(\.openURL) private var openURL
 
     private struct Line {
         let label: String
@@ -50,6 +52,16 @@ struct TreasurersReportView: View {
                     .buttonStyle(PrimaryButtonStyle())
                 Button("Export workbook (CSV)") { store.exportWorkbook() }
                     .buttonStyle(SecondaryButtonStyle())
+
+                // Without a link saved, this sends the treasurer to the one
+                // screen where they can add it rather than going nowhere.
+                if let link = store.sheetsLink {
+                    Button("Open in Google Sheets \u{2197}\u{FE0E}") { openURL(link) }
+                        .buttonStyle(SecondaryButtonStyle())
+                } else {
+                    Button("Link a Google Sheets copy") { nav.push(.teamSettings) }
+                        .buttonStyle(SecondaryButtonStyle())
+                }
             }
             .padding(.top, 24)
         }

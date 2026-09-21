@@ -195,6 +195,10 @@ final class Team {
     var visibleTo: String = "Treasurer, Manager, Coaches"
     var seasonStart: Date = DateComponents(calendar: .current, year: 2026, month: 9, day: 1).date!
     var seasonEnd: Date = DateComponents(calendar: .current, year: 2027, month: 4, day: 30).date!
+    /// Link to a Google Sheets copy of the books, kept alongside the app as
+    /// a reference the treasurer can open from the report. Empty until one is
+    /// pasted in; always a normalized http(s) address — see `LedgerStore.setSheetsURL(_:)`.
+    var sheetsURL: String = ""
     /// The code another device/user will use to join this team's shared data
     /// once cloud sync is wired up. Generated once, stable thereafter.
     var joinCode: String = Team.generateJoinCode()
