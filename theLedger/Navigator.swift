@@ -13,6 +13,7 @@ enum SubRoute: Hashable {
     case report
     case refunds
     case teamSettings
+    case cloudSync
 }
 
 /// Mirrors the prototype's single `{ tab, sub }` navigation state: a sub-screen

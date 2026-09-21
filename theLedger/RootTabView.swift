@@ -5,6 +5,7 @@ struct RootTabView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var store = LedgerStore()
     @State private var nav = Navigator()
+    @State private var cloudSync = CloudSyncService()
     @State private var edgeDragOffset: CGFloat = 0
 
     private let edgeStripWidth: CGFloat = 24
@@ -41,6 +42,7 @@ struct RootTabView: View {
         .toast(store.toastMessage)
         .environment(store)
         .environment(nav)
+        .environment(cloudSync)
         .tint(Theme.accent)
         .task { store.attach(modelContext) }
     }
@@ -84,6 +86,8 @@ struct RootTabView: View {
                 RefundsView()
             case .teamSettings:
                 TeamSettingsView()
+            case .cloudSync:
+                CloudSyncView()
             }
         } else {
             switch nav.tab {
@@ -107,6 +111,7 @@ struct RootTabView: View {
             case .report: return "Treasurer's report"
             case .refunds: return "Refunds"
             case .teamSettings: return "Team & settings"
+            case .cloudSync: return "Share this team"
             }
         }
         switch nav.tab {
@@ -131,6 +136,7 @@ struct RootTabView: View {
             case .report: return "As at \(Formatting.reportDate(store.asOfDate))"
             case .refunds: return "Projected season-end position"
             case .teamSettings: return store.team.name
+            case .cloudSync: return cloudSync.isLinked ? "Synced with other devices" : "Not shared yet"
             }
         }
         switch nav.tab {
