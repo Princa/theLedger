@@ -155,7 +155,7 @@ final class LedgerStore {
                 TeamSnapshot.CategoryDTO(code: $0.code, name: $0.name, budget: $0.budget, sortIndex: $0.sortIndex)
             },
             ledger: ledger.map {
-                TeamSnapshot.LedgerDTO(date: $0.date, desc: $0.desc, withdrawal: $0.withdrawal, deposit: $0.deposit, categoryCode: $0.categoryCode, incomeSource: $0.incomeSource, levyTag: $0.levyTag, sequence: $0.sequence)
+                TeamSnapshot.LedgerDTO(date: $0.date, desc: $0.desc, withdrawal: $0.withdrawal, deposit: $0.deposit, categoryCode: $0.categoryCode, incomeSource: $0.incomeSource, levyTag: $0.levyTag, origin: $0.origin, sequence: $0.sequence)
             },
             reimbursements: reimbursements.map {
                 TeamSnapshot.ReimbursementDTO(who: $0.who, desc: $0.desc, amount: $0.amount, categoryCode: $0.categoryCode, status: $0.status, statusNote: $0.statusNote)
@@ -210,7 +210,7 @@ final class LedgerStore {
             modelContext.insert(BudgetCategory(code: c.code, name: c.name, budget: c.budget, sortIndex: c.sortIndex))
         }
         for e in snapshot.ledger {
-            modelContext.insert(LedgerEntry(date: e.date, desc: e.desc, withdrawal: e.withdrawal, deposit: e.deposit, categoryCode: e.categoryCode, incomeSource: e.incomeSource, levyTag: e.levyTag, sequence: e.sequence))
+            modelContext.insert(LedgerEntry(date: e.date, desc: e.desc, withdrawal: e.withdrawal, deposit: e.deposit, categoryCode: e.categoryCode, incomeSource: e.incomeSource, levyTag: e.levyTag, origin: e.origin, sequence: e.sequence))
         }
         for r in snapshot.reimbursements {
             modelContext.insert(Reimbursement(who: r.who, desc: r.desc, amount: r.amount, categoryCode: r.categoryCode, status: r.status, statusNote: r.statusNote))
@@ -455,8 +455,17 @@ final class LedgerStore {
 
     // MARK: - Ledger row deletion (swipe-to-delete)
 
+    /// Explains a locked row when it's tapped. The transaction lists hide the
+    /// swipe and edit affordances for these, so this is the only thing a tap
+    /// does — it tells the treasurer which screen owns the entry.
+    func explainLock(_ entry: LedgerEntry) {
+        guard let note = entry.lockNote else { return }
+        say(note)
+    }
+
     func deleteLedgerEntry(_ id: UUID) {
         guard let entry = ledger.first(where: { $0.id == id }) else { return }
+        guard !entry.isLocked else { explainLock(entry); return }
         let desc = entry.desc
         context.delete(entry)
         save()
@@ -468,9 +477,12 @@ final class LedgerStore {
 
     /// Edits an existing entry in place. Keeps its original deposit/withdrawal
     /// direction and levy tag (if any) — only description, amount, date, and
-    /// the category/income-source tag are editable.
+    /// the category/income-source tag are editable. Entries another screen owns
+    /// are refused outright; there's no way to express, say, an $800 levy
+    /// instalment on a $1,000 × 4 schedule.
     func updateLedgerEntry(id: UUID, date: Date, desc: String, amount: Double, categoryCode: String?, incomeSource: IncomeSource?) {
         guard let entry = ledger.first(where: { $0.id == id }) else { return }
+        guard !entry.isLocked else { explainLock(entry); return }
         let trimmedDesc = desc.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.date = date
         entry.desc = trimmedDesc.isEmpty ? entry.desc : trimmedDesc
@@ -478,7 +490,9 @@ final class LedgerStore {
             entry.withdrawal = amount
             entry.categoryCode = categoryCode
         } else {
-            entry.deposit = amount
+            // The sheet edits the amount unsigned, so a reversal (a negative
+            // deposit) keeps its sign here rather than flipping to money in.
+            entry.deposit = (entry.deposit ?? 0) < 0 ? -amount : amount
             entry.incomeSource = incomeSource
         }
         save()
@@ -496,7 +510,7 @@ final class LedgerStore {
             context.delete(existing)
         } else {
             let desc = (wasPaid ? "Levy reversal — " : "Player levy — ") + player.name + ", instalment #\(index + 1)"
-            context.insert(LedgerEntry(date: todayDate, desc: desc, deposit: wasPaid ? -1000 : 1000, incomeSource: .levy, levyTag: tag, sequence: nextSequence()))
+            context.insert(LedgerEntry(date: todayDate, desc: desc, deposit: wasPaid ? -1000 : 1000, incomeSource: .levy, levyTag: tag, origin: .levy, sequence: nextSequence()))
         }
         player.instalmentsPaid[index].toggle()
         save()
@@ -520,7 +534,7 @@ final class LedgerStore {
         case .approved:
             r.status = .paid
             r.statusNote = "Paid by e-transfer, \(Formatting.shortDate(todayDate))"
-            context.insert(LedgerEntry(date: todayDate, desc: "Reimbursement — \(r.who), \(r.desc)", withdrawal: r.amount, categoryCode: r.categoryCode, sequence: nextSequence()))
+            context.insert(LedgerEntry(date: todayDate, desc: "Reimbursement — \(r.who), \(r.desc)", withdrawal: r.amount, categoryCode: r.categoryCode, origin: .reimbursement, sequence: nextSequence()))
             save()
             refreshReimbursements()
             refreshLedger()

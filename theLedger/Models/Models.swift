@@ -33,6 +33,27 @@ enum StaffRole: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 }
 
+/// Marks a ledger entry that another screen's workflow created and still
+/// keeps in step with its own state — a levy instalment square, or a
+/// reimbursement marked paid. Editing or deleting one straight from a
+/// transaction list would leave the two out of step (the square would still
+/// read paid with the deposit gone), so those entries are changed only from
+/// the screen that owns them.
+enum LedgerOrigin: String, Codable {
+    case levy
+    case reimbursement
+
+    /// Shown when someone taps a locked row, so they know where to go.
+    var lockNote: String {
+        switch self {
+        case .levy:
+            return "This came from Player levies — untick the instalment there to undo it."
+        case .reimbursement:
+            return "This came from paying a reimbursement, so it's fixed to that record."
+        }
+    }
+}
+
 enum SponsorStatus: String, Codable {
     case received
     case committed
@@ -118,13 +139,16 @@ final class LedgerEntry {
     /// Ties a levy-instalment entry back to the player/instalment that created it,
     /// so re-tapping the square can find and reverse it.
     var levyTag: String?
+    /// Set when another screen's workflow created this entry — see `LedgerOrigin`.
+    /// nil for the ordinary entries a treasurer logs, imports, or types in by hand.
+    var origin: LedgerOrigin?
     /// Insertion order. The ledger is deliberately shown in the order
     /// entries were recorded, not sorted by `date` — a CSV import can add
     /// entries dated earlier than ones already on screen, and they should
     /// still land at the end, not reshuffle everything above them.
     var sequence: Int = 0
 
-    init(id: UUID = UUID(), date: Date, desc: String, withdrawal: Double? = nil, deposit: Double? = nil, categoryCode: String? = nil, incomeSource: IncomeSource? = nil, levyTag: String? = nil, sequence: Int = 0) {
+    init(id: UUID = UUID(), date: Date, desc: String, withdrawal: Double? = nil, deposit: Double? = nil, categoryCode: String? = nil, incomeSource: IncomeSource? = nil, levyTag: String? = nil, origin: LedgerOrigin? = nil, sequence: Int = 0) {
         self.id = id
         self.date = date
         self.desc = desc
@@ -133,7 +157,20 @@ final class LedgerEntry {
         self.categoryCode = categoryCode
         self.incomeSource = incomeSource
         self.levyTag = levyTag
+        self.origin = origin
         self.sequence = sequence
+    }
+
+    /// True for entries another screen owns, which the transaction lists show
+    /// but don't let you edit or delete. `levyTag` is checked as well as
+    /// `origin` so levy entries written before `origin` existed stay locked.
+    var isLocked: Bool { origin != nil || levyTag != nil }
+
+    /// The note to show when someone taps a locked row.
+    var lockNote: String? {
+        if let origin { return origin.lockNote }
+        if levyTag != nil { return LedgerOrigin.levy.lockNote }
+        return nil
     }
 }
 
