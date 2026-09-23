@@ -59,12 +59,7 @@ struct MoneyInView: View {
                     .frame(minHeight: 44)
                     .contentShape(Rectangle())
                 }
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) { store.deleteLedgerEntry(entry.id) } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
-                }
-                .onTapGesture { editingEntry = entry }
+                .transactionRowActions(for: entry, store: store) { editingEntry = entry }
             }
 
             VStack(alignment: .leading, spacing: 0) {
