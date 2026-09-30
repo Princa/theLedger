@@ -53,7 +53,7 @@ struct BankLedgerView: View {
                 }
                 .padding(.top, 14)
 
-                Text("Export from the bank as CSV with Date, Description, Withdrawal, Deposit. Rows are matched to expense types and checked against what's already here. Tap a transaction to edit it, or swipe left to delete it.")
+                Text("Export from the bank as CSV with Date, Description, Withdrawal, Deposit. Rows are matched to expense types and checked against what's already here. Tap a transaction to edit it, or swipe left to delete it — levy instalments and paid reimbursements are changed on their own screens.")
                     .font(Theme.serif(12))
                     .foregroundStyle(Theme.muted)
                     .lineSpacing(3)
@@ -77,12 +77,7 @@ struct BankLedgerView: View {
                 FlatListRow {
                     LedgerRow(entry: row.entry, running: row.running)
                 }
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) { store.deleteLedgerEntry(row.entry.id) } label: {
-                        Label("Delete", systemImage: "trash")
-                    }
-                }
-                .onTapGesture { editingEntry = row.entry }
+                .transactionRowActions(for: row.entry, store: store) { editingEntry = row.entry }
             }
         }
         .listStyle(.plain)

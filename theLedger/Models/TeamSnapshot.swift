@@ -47,6 +47,10 @@ struct TeamSnapshot: Codable {
         var categoryCode: String?
         var incomeSource: IncomeSource?
         var levyTag: String?
+        /// Optional on the wire so snapshots written before this field
+        /// existed still decode — a missing key means "an ordinary entry,
+        /// not one another screen owns".
+        var origin: LedgerOrigin?
         var sequence: Int
     }
     struct ReimbursementDTO: Codable {

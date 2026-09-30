@@ -37,6 +37,29 @@ struct FlatListRow<Content: View>: View {
 }
 
 extension View {
+    /// The interaction every transaction row shares: tap to edit, swipe left
+    /// to delete. Entries another screen owns (a levy instalment, a paid
+    /// reimbursement) get neither — a tap just says where they're managed —
+    /// so the ledger can't drift out of step with the screen that wrote them.
+    @ViewBuilder
+    func transactionRowActions(
+        for entry: LedgerEntry,
+        store: LedgerStore,
+        edit: @escaping () -> Void
+    ) -> some View {
+        if entry.isLocked {
+            self.onTapGesture { store.explainLock(entry) }
+        } else {
+            self
+                .swipeActions(edge: .trailing) {
+                    Button(role: .destructive) { store.deleteLedgerEntry(entry.id) } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                .onTapGesture(perform: edit)
+        }
+    }
+
     /// Strips a List row down to plain content with the app's screen
     /// padding and no system chrome — for header/footer blocks (hero
     /// figures, buttons) that shouldn't get the hairline divider a
